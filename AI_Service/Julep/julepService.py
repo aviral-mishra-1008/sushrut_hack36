@@ -10,38 +10,54 @@ client = Julep(
     environment=os.getenv('JULEP_ENVIRONMENT', 'production')
 )
 
-# agent = client.agents.create(
-#     name='Medical Intent Detector',
-#     about='Return corresponding endpoint information based on prompt',
-#     model="gpt-4o-mini",
-#     instructions=["You are a medical intent detector. ", "Your job is to detect intent of a query and return the name of the endpoint which should be called.", '''Following are the endpoints available 
-#       query_llm -> if user has specified symptoms and wishes to know the description of the disease, 
-#       book_appointment -> if user has specified a particular department in which he wants a doctor, 
-#       check_availability -> if user has specified a doctor name and appointment booking date, 
-#       customer_support -> if user needs help with some platform based services. 
-#       Return only the name of the endpoint and nothing else''']
-# )
+class APICaller:
 
-agent = client.agents.get(agent_id=os.getenv('AGENT_ID'))
-
-#print(agent.id)
-
-class SessionControl:
-    def createSession(self, user_id):
-        self.session = client.sessions.create(agent=agent.id, user=user_id, context_overflow='adaptive')
-        print(self.session.id)
+    def __init__(self, prompt):
+        self.prompt = prompt
     
-    def getHistory(self):
-        print(client.sessions.history(session_id=self.session.id))
-    
-    def sendMessage(self, message_info):
-        response = client.sessions.chat(
-            session_id=self.session.id,
-            messages=[
-                {
-                    "role": "user",
-                    "content": message_info
-                }
-            ]
-        )
+    def sendMessage(self):
+        session = client.sessions.get(session_id=os.getenv('SESSION_ID'))
+
+        response = None
+
+        while (response is None):
+            print("Waiting for response...")
+            response = client.sessions.chat(
+                session_id=session.id,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": self.prompt
+                    }
+                ]
+            )
+
         return response.choices[0].message.content
+    
+    def callAPI(self):
+        endpoint = self.sendMessage()
+        url = "http://127.0.0.1:8000/api/" + endpoint
+        if endpoint == 'query_llm':
+            data = {
+                'prompt': self.prompt
+            }
+            res = requests.post(url=url, json=data)
+            return res
+        if endpoint == 'book_appointment':
+            data = {
+                'prompt': self.prompt
+            }
+            res = requests.post(url=url, json=data)
+            return res
+        if endpoint == 'check_availability':
+            data = {
+                'prompt': self.prompt
+            }
+            res = requests.post(url=url, json=data)
+            return res
+        if endpoint == 'customer_support':
+            return requests.get(url=url)
+    
+prompt = 'I am feeling severe headache, 5 mosquitoes have bit me recently. What should I do?'
+call = APICaller(prompt=prompt)
+print(call.callAPI())
