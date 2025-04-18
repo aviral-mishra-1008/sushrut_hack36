@@ -161,6 +161,6 @@ def format_tabular_output(df):
 
 def process_medical_report(text):
     df = extract_medical_report_data(text)
-    formatted_output = format_tabular_output(df)
+    # formatted_output = format_tabular_output(df)
     df.to_csv('extracted_table.csv')
-    return formatted_output, df
+    return df

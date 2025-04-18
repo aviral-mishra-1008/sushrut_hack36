@@ -4,14 +4,12 @@ import pytesseract
 import io
 
 class PDFTextExtractor:
-    def __init__(self, pdf_path):
-        self.pdf_path = pdf_path
 
-    def extract_images_from_pdf(self):
+    def extract_images_from_pdf(self, pdf_path):
         
         #Extracts images from the PDF file.
     
-        pdf_document = fitz.open(self.pdf_path)
+        pdf_document = fitz.open(pdf_path)
         images = []
         for page_num in range(len(pdf_document)):
             page = pdf_document.load_page(page_num)
@@ -37,10 +35,10 @@ class PDFTextExtractor:
 
         return extracted_text
 
-    def process_pdf(self):
+    def process_pdf(self,pdf_path):
   
         #Processes the PDF file: extracts images, performs OCR, and returns the text.
         
-        images = self.extract_images_from_pdf()
+        images = self.extract_images_from_pdf(pdf_path)
         extracted_text = self.extract_text_from_images(images)
         return extracted_text

@@ -1,0 +1,3 @@
+Run following command to install the en_core_web_lg model on your system:
+
+python -m spacy download en_core_web_lg
