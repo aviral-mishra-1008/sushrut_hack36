@@ -2,6 +2,7 @@ from julep import Julep
 import os
 from dotenv import load_dotenv
 import requests
+from parsingService import parseNameDateTime
 
 load_dotenv()
 
@@ -44,12 +45,23 @@ class APICaller:
             res = requests.post(url=url, json=data)
             return res
         if endpoint == 'book_appointment':
+            info = parseNameDateTime(self.prompt)
+            #print(info)
             data = {
-                'prompt': self.prompt
+                'name': info['name'],
+                'date': info['date'],
+                'time': info['time']
             }
             res = requests.post(url=url, json=data)
             return res
         if endpoint == 'check_availability':
+            info = parseNameDateTime(self.prompt)
+            #print(info)
+            data = {
+                'name': info['name'],
+                'date': info['date'],
+                'time': info['time']
+            }
             data = {
                 'prompt': self.prompt
             }
@@ -58,6 +70,6 @@ class APICaller:
         if endpoint == 'customer_support':
             return requests.get(url=url)
     
-prompt = 'I am feeling severe headache, 5 mosquitoes have bit me recently. What should I do?'
+prompt = 'Please book an appointment with Dr. Sudhir tomorrow on 11:50 am.'
 call = APICaller(prompt=prompt)
 print(call.callAPI())

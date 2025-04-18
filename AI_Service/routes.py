@@ -4,6 +4,11 @@ from pydantic import BaseModel
 class Prompt(BaseModel):
     prompt: str
 
+class Doctor(BaseModel):
+    name: str
+    date: str
+    time: str
+
 app = FastAPI()
 
 @app.post('/api/query_llm')
@@ -12,12 +17,12 @@ def first_route(prompt: Prompt):
     return 1
 
 @app.post('/api/book_appointment')
-def second_route(prompt):
+def second_route(prompt: Doctor):
     print(prompt)
     return 2
 
 @app.post('/api/check_availability')
-def third_route(prompt):
+def third_route(prompt: Doctor):
     print(prompt)
     return 3
 
