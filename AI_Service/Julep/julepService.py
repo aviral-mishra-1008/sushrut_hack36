@@ -3,6 +3,13 @@ import os
 from dotenv import load_dotenv
 import requests
 from parsingService import parseNameDateTime
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Prompt(BaseModel):
+    prompt: str
 
 load_dotenv()
 
@@ -37,13 +44,13 @@ class APICaller:
     
     def callAPI(self):
         endpoint = self.sendMessage()
-        url = "http://127.0.0.1:8000/api/" + endpoint
+        url = "http://127.0.0.1:8080/api/" + endpoint
         if endpoint == 'query_llm':
             data = {
                 'prompt': self.prompt
             }
-            res = requests.post(url=url, json=data)
-            return res
+            res = requests.post(url="http://127.0.0.1:8080/api/llm/query", json=data)
+            return res.content
         if endpoint == 'book_appointment':
             info = parseNameDateTime(self.prompt)
             #print(info)
@@ -69,7 +76,8 @@ class APICaller:
             return res
         if endpoint == 'customer_support':
             return requests.get(url=url)
-    
-prompt = 'I have a bad stomach ache and diarrhea. Help me!'
-call = APICaller(prompt=prompt)
-print(call.callAPI())
+
+@app.post('/api/julep')
+def getIntent(prompt: Prompt):
+    call = APICaller(prompt=prompt.prompt)
+    print(call.callAPI())

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from Models.LLM.LLM import LLM
+from Models.Gemini.Recomment_Department import Gemini
 
 class Prompt(BaseModel):
     prompt: str
@@ -16,11 +17,13 @@ class PathologyRequest(BaseModel):
 app = FastAPI()
 
 llm = LLM()
+rd = Gemini()
 
 @app.post('/api/query_llm')
 def first_route(prompt: Prompt):
     output = llm.generate(prompt.prompt)
-    print(output)
+    dept = rd.predict_department(prompt.prompt)
+    print(dept)
     return output
 
 @app.post('/api/book_appointment')
