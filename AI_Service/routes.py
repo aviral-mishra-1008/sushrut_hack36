@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from Models.LLM.LLM import LLM
 
 class Prompt(BaseModel):
     prompt: str
@@ -13,8 +14,9 @@ app = FastAPI()
 
 @app.post('/api/query_llm')
 def first_route(prompt: Prompt):
-    print(prompt)
-    return 1
+    llm = LLM()
+    output = llm.generate(prompt)
+    return output
 
 @app.post('/api/book_appointment')
 def second_route(prompt: Doctor):
