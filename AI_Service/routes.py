@@ -10,25 +10,27 @@ class Doctor(BaseModel):
     date: str
     time: str
 
+class PathologyRequest(BaseModel):
+    prompt: str
+
 app = FastAPI()
+
+llm = LLM()
 
 @app.post('/api/query_llm')
 def first_route(prompt: Prompt):
-    llm = LLM()
-    output = llm.generate(prompt)
+    output = llm.generate(prompt.prompt)
+    print(output)
     return output
 
 @app.post('/api/book_appointment')
 def second_route(prompt: Doctor):
-    print(prompt)
-    return 2
+    return prompt
 
 @app.post('/api/check_availability')
 def third_route(prompt: Doctor):
-    print(prompt)
-    return 3
+    return prompt
 
-@app.get('/api/customer_support')
-def fourth_route():
-    print(4)
-    return 4
+@app.post('/api/pathology_test')
+def fourth_route(prompt: PathologyRequest):
+    return prompt
