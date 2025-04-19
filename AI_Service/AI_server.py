@@ -97,6 +97,9 @@ async def register_user(request: Request):
             register_user(audio_path, image_path, userID)
             print("User registered successfully")
 
+            os.remove(audio_path)
+            os.remove(image_path)
+
         except Exception as e:
             return JSONResponse(
                 status_code=400,
@@ -110,6 +113,71 @@ async def register_user(request: Request):
             status_code=200,
             content={
                 "message": "Registration successful",
+            }
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": f"An error occurred: {str(e)}",
+            }
+        )
+
+@app.post("/authenticate_user")
+async def authenticate_user(request: Request):
+    try:
+        data = await request.json()
+        audio_base64 = data.get("audio_file")
+        image_base64 = data.get("image_file")
+
+        if not audio_base64 or not image_base64:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error", 
+                    "message": "Both audio_file and image_file are required",
+                }
+            )
+
+        try:
+            audio_data = base64.b64decode(audio_base64)
+            audio_path = TEMP_DIR / "temp_audio.wav"
+            with open(audio_path, "wb") as f:
+                f.write(audio_data)
+
+            image_data = base64.b64decode(image_base64)
+            image_path = TEMP_DIR / "temp_image.jpg"
+            with open(image_path, "wb") as f:
+                f.write(image_data)
+
+            userID = authenticate_user(audio_path, image_path)
+            print("User authenticated successfully")
+
+        except Exception as e:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error",
+                    "message": f"Invalid base64 data: {str(e)}",
+                }
+            )
+        
+        if userID == -1:
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "status": "error",
+                    "message": "Authentication failed",
+                }
+            )
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "userID": userID,
+                "message": "Authentication successful",
             }
         )
 
