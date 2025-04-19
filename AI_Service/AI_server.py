@@ -214,7 +214,7 @@ async def summarize_report(request: Request):
     try:
         data = await request.json()
         file_content = data.get('file_content', '')
-        report_type = data.get('report_type', None)
+        report_type = int(data.get('report_type', '-1'))
 
         if not file_content:
             return JSONResponse(
