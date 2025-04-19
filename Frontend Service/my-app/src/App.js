@@ -11,6 +11,7 @@ import { Navigate } from 'react-router-dom';
 import { ProtectedRoute2 } from './routes/ProtectedRoute2';
 import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
+import SignUpDA from "./pages/SignupDA";
 function App() {
   return (
     <BrowserRouter>
@@ -22,6 +23,7 @@ function App() {
         <Route path = "signup" element = { <Signup/>}/> 
         <Route path = "login" element = { <Login/> }/> 
         <Route path = "agent" element = { <Agent/> }/> 
+        <Route path = "signupDA" element = { <SignUpDA/> }/>
 
         {/* Redirect /moderator to /moderator/dashboard */}
         <Route 

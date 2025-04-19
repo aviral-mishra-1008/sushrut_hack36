@@ -6,6 +6,10 @@ import { useNavigate, Link } from "react-router-dom";
 
 const Signup = () => {
   const navigate = useNavigate();
+
+   const goToTouchLessMode = () => {
+     navigate("/signupDA"); // Navigate to signupDA page
+   };
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState("patient");
   const [formData, setFormData] = useState({
@@ -98,6 +102,31 @@ const Signup = () => {
             Already have an account? Login
           </Link>
         </div>
+
+        <motion.button
+          onClick={goToTouchLessMode}
+          className="w-full mb-6 py-3 px-4 bg-purple-600 text-white rounded-lg 
+                   flex items-center justify-center gap-2 hover:bg-purple-700 
+                   transition-colors duration-300"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+            />
+          </svg>
+          Go to Touchless Mode
+        </motion.button>
 
         {/* Role Selection */}
         <div className="flex gap-4 mb-8">
@@ -245,7 +274,11 @@ const Signup = () => {
                   </option>
                   {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
                     (group) => (
-                      <option key={group} value={group} className="text-gray-800">
+                      <option
+                        key={group}
+                        value={group}
+                        className="text-gray-800"
+                      >
                         {group}
                       </option>
                     )
