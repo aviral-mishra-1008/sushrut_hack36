@@ -1,4 +1,4 @@
-from Styles import *
+from Models.LLM.Styles import *
 
 '''
     Prompt will be ehnaced over time to include other components as 
