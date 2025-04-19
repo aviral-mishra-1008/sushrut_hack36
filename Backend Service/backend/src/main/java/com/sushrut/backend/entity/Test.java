@@ -29,8 +29,8 @@ public class Test {
     @JoinColumn(name = "patient_id", nullable = false)
     private User patient;
 
-    @Lob
-    @Column(name = "encrypted_pdf", columnDefinition = "BLOB")
+
+    @Column(name = "encrypted_pdf")
     private String encryptedPdf;
 
     @Enumerated(EnumType.STRING)
