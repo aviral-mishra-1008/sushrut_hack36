@@ -1,0 +1,15 @@
+{
+    "NER_TAGS_MAPPING": {
+        "0": "B-ABNORMALITY",
+        "1": "I-ABNORMALITY",
+        "2": "B-NON-ABNORMALITY",
+        "3": "I-NON-ABNORMALITY",
+        "4": "B-DISEASE",
+        "5": "I-DISEASE",
+        "6": "B-NON-DISEASE",
+        "7": "I-NON-DISEASE",
+        "8": "B-ANATOMY",
+        "9": "I-ANATOMY",
+        "10": "O"
+    }
+}

@@ -1,18 +1,18 @@
 from fastapi import FastAPI, HTTPException
-from Models.LLM.LLM import *
-from Models.Gemini.Recomment_Department import *
-from Models.LLM.Prompt_Builder import *
+from LLM_Models.LLM.LLM import *
+from LLM_Models.Gemini.Recomment_Department import *
+from LLM_Models.LLM.Prompt_Builder import *
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import json
 from translate import *
-from Models.LLM.Styles import *
+from LLM_Models.LLM.Styles import *
 from fastapi import FastAPI, File, UploadFile, Request
 import shutil
 from pathlib import Path
 from fastapi.responses import JSONResponse
 import base64
-from Touchless_Authentication_Module.auth import *
+from auth import *
 
 app = FastAPI()
 
