@@ -6,7 +6,10 @@ import Login from './pages/Login';
 import Signup from './pages/signup';
 import Navbar from './components/Navbar';
 import Agent from './pages/Agent';
-
+import { ModeratorLogin } from './pages/ModeratorLogin';
+import { ProtectedRoute } from './routes/ProtectedRoute';
+import { ModeratorDashboard } from './pages/ModeratorDashboard';
+import { Navigate } from 'react-router-dom';
 function App() {
   return (
     <BrowserRouter>
@@ -18,6 +21,28 @@ function App() {
         <Route path = "signup" element = { <Signup/>}/> 
         <Route path = "login" element = { <Login/> }/> 
         <Route path = "agent" element = { <Agent/> }/> 
+
+        {/* Redirect /moderator to /moderator/dashboard */}
+        <Route 
+          path="/moderator" 
+          element={<Navigate to="/moderator/dashboard" replace />} 
+        />
+
+        {/* Login route */}
+        <Route 
+          path="/moderator/login" 
+          element={<ModeratorLogin />} 
+        />
+
+        {/* Protected dashboard route */}
+        <Route
+          path="/moderator/dashboard"
+          element={
+            // <ProtectedRoute>
+              <ModeratorDashboard />
+            // </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
     </BrowserRouter>
