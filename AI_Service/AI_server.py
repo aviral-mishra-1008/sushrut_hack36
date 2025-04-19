@@ -22,6 +22,9 @@ from LLM_Models.Gemini.Layman import *
 from Masking_Demasking_Module.Masking_Layer import *
 import os
 from pydub import AudioSegment
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import json
 import io
 
 
@@ -46,7 +49,7 @@ pdf_to_text = PDFTextExtractor()
 explainer = Layman(os.getenv('GEMINI_API_KEY'))
 pii_masker = PIIMasker()
 
-
+ENCRYPTION_KEY = "YourSecretKey123YourSecretKey123".encode('utf-8')
 TEMP_DIR = os.path.join(os.getcwd(),"Temp")
 
 @app.post("/query")
@@ -229,6 +232,15 @@ async def authenticate_users(request: Request):
         )
 
 
+
+
+
+
+def decrypt_data(encrypted_data):
+    cipher = Cipher(algorithms.AES(ENCRYPTION_KEY), modes.ECB(), backend=default_backend())
+    decryptor = cipher.decryptor()
+    return decryptor.update(encrypted_data) + decryptor.finalize()
+
 @app.post("/summarize")
 async def summarize_report(request: Request):
     try:
@@ -255,25 +267,29 @@ async def summarize_report(request: Request):
             )
 
         try:
-            pdf_content = base64.b64decode(file_content)
-            pdf_path =  os.path.join(TEMP_DIR,"test.pdf")
+            encrypted_content = base64.b64decode(file_content)
+            pdf_content = decrypt_data(encrypted_content)
+            
+            os.makedirs(TEMP_DIR, exist_ok=True)
+            
+            pdf_path = os.path.join(TEMP_DIR, "test.pdf")
             with open(pdf_path, "wb") as f:
                 f.write(pdf_content)
+
         except Exception as e:
             return JSONResponse(
                 status_code=400,
                 content={
                     "status": "error",
-                    "message": f"Invalid PDF content: {str(e)}"
+                    "message": f"Invalid PDF content or decryption error: {str(e)}"
                 }
             )
 
         try:
-            if report_type == 0:  
+            if report_type == 0: 
                 outcome = radio_summary_model.summarize_pdf(str(pdf_path))
                 
                 masked_text, mapping_dict = pii_masker.mask_pii(outcome)
-                
                 masked_explanation = explainer.explain(masked_text)
                 
                 demasked_summary = pii_masker.demask_pii(masked_text, mapping_dict)
@@ -285,7 +301,7 @@ async def summarize_report(request: Request):
                     "explanation": demasked_explanation
                 }
 
-            else: 
+            else:  
                 tables = table_extractor.get_valid_tables(str(pdf_path))
                 
                 if tables is not None:
@@ -311,8 +327,7 @@ async def summarize_report(request: Request):
                 
                 response = {
                     "status": "success",
-                    "summary": demasked_summary,
-                    "explanation": demasked_explanation
+                    "summary": demasked_explanation
                 }
 
         finally:
