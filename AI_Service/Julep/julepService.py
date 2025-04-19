@@ -5,11 +5,26 @@ import requests
 from parsingService import parseNameDateTime
 from fastapi import FastAPI
 from pydantic import BaseModel
+import sys
+from fastapi import Request
+from fastapi.middleware.cors import CORSMiddleware
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from translate import to_english
+from Masking_Demasking_Module.Masking_Layer import PIIMasker
+
+pii = PIIMasker()
 
 app = FastAPI()
 
-class Prompt(BaseModel):
-    prompt: str
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 load_dotenv()
 
@@ -78,6 +93,11 @@ class APICaller:
             return requests.get(url=url)
 
 @app.post('/api/julep')
-def getIntent(prompt: Prompt):
-    call = APICaller(prompt=prompt.prompt)
-    print(call.callAPI())
+async def getIntent(prompt: Request):
+    data = await prompt.json()
+    query = data.get('query', '')
+    language = data.get('language', '')
+    if language != 'en-US' and language != 'en-GB':
+        query = to_english(query, language)
+    call = APICaller(query)
+    return call.callAPI()
