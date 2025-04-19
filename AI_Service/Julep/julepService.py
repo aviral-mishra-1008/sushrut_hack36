@@ -70,6 +70,6 @@ class APICaller:
         if endpoint == 'customer_support':
             return requests.get(url=url)
     
-prompt = 'Please book an appointment with Dr. Sudhir tomorrow on 11:50 am.'
+prompt = 'I have a bad stomach ache and diarrhea. Help me!'
 call = APICaller(prompt=prompt)
 print(call.callAPI())
