@@ -332,7 +332,7 @@ const SignUpDA = () => {
     const llmResponse = await axios.post(
       "http://localhost:8000/register_user",
       {
-        userID: "36630102-9f82-42c5-aaaf-cfaaed2895be",
+        userID: userData.email.replace(/\./g, '').trim(),
         image_file: globalBase64Image,
         audio_file: globalAudioRecording,
       },

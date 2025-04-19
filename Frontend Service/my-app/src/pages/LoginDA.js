@@ -146,19 +146,39 @@ const LoginDA = () => {
           // userLogin: userLogin
         }
       );
-
-      console.log("Login response:", response.data);
+      console.log("Login response:", response.data.userID);
       toast.success("Login successful!");
-
-      localStorage.setItem('userData', JSON.stringify(response.data));
-      
-      setTimeout(() => {
-        if (response.data.role === "PATIENT") {
-          navigate("/patient/dashboard");
-        } else {
-          navigate("/doctor/dashboard");
-        }
-      }, 1500);
+      try {
+        console.log(response.data.userID);
+        console.log("SecurePass@2025");
+        const response2 = await axios.post(
+          "http://localhost:8080/api/auth/login",
+          {
+            email: response.data.userID,
+            password: "SecurePass@2025",
+            // role: role,
+          }
+        );
+        
+        // Store token and role in localStorage
+        localStorage.setItem('token', response2.data.token);
+        // localStorage.setItem('userRole', role);
+        localStorage.setItem('userData', JSON.stringify(response2.data));
+        
+        console.log("Login response:", response2.data);
+        toast.success("Login successful!");
+  
+        
+        // Redirect based on role
+        setTimeout(() => {
+            navigate("/patient/dashboard");
+        }, 1500);
+      } catch (error) {
+        const errorMessage =
+          error.response2?.data?.message || "Login failed. Please try again.";
+        toast.error(errorMessage);
+        console.error("Login error:", error);
+      } 
 
     } catch (error) {
       console.error("Login error:", error);
@@ -204,9 +224,9 @@ const LoginDA = () => {
           </div>
         </div>
 
-        <div className="text-sm text-gray-500 mb-6">
+        {/* <div className="text-sm text-gray-500 mb-6">
           User: {userLogin}
-        </div>
+        </div> */}
 
         <div className="space-y-6">
           <div className="text-sm text-gray-500 text-center">
