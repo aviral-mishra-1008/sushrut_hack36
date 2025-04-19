@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { format } from 'date-fns';
 
 // Global variables to store base64 data
 let globalAudioBase64 = null;
@@ -15,6 +16,9 @@ const LoginDA = () => {
   const [audioRecording, setAudioRecording] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [verificationPhrase, setVerificationPhrase] = useState("");
+  const [timestamp] = useState(format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+  const [userLogin] = useState("Ayushman444");
 
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -24,6 +28,28 @@ const LoginDA = () => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
     window.speechSynthesis.speak(utterance);
+  };
+
+  const generateVerificationPhrase = () => {
+    const words = [
+      "apple", "banana", "orange", "grape",
+      "dog", "cat", "bird", "fish",
+      "red", "blue", "green", "yellow",
+      "run", "jump", "walk", "dance",
+      "happy", "sunny", "cloud", "star",
+      "book", "pen", "desk", "chair",
+      "lake", "tree", "mountain", "river",
+      "smile", "laugh", "sing", "play",
+      "fast", "slow", "bright", "dark",
+      "morning", "evening", "night", "day"
+    ];
+    
+    const selectedWords = [];
+    for (let i = 0; i < 4; i++) {
+      const randomIndex = Math.floor(Math.random() * words.length);
+      selectedWords.push(words[randomIndex]);
+    }
+    return selectedWords.join(" ");
   };
 
   const startCamera = async () => {
@@ -47,10 +73,8 @@ const LoginDA = () => {
       canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
       const imageDataUrl = canvas.toDataURL("image/jpeg");
 
-      // Convert to base64 and store globally
       globalImageBase64 = imageDataUrl.split(',')[1];
       
-      // Convert to Blob for preview
       fetch(imageDataUrl)
         .then((res) => res.blob())
         .then((blob) => {
@@ -58,7 +82,6 @@ const LoginDA = () => {
           console.log("Photo captured successfully");
         });
 
-      // Stop video stream
       const tracks = videoRef.current.srcObject.getTracks();
       tracks.forEach((track) => track.stop());
     }
@@ -83,7 +106,6 @@ const LoginDA = () => {
         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioRecording(audioBlob);
 
-        // Convert to base64
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = () => {
@@ -115,18 +137,19 @@ const LoginDA = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://your-endpoint/api/auth/login-biometric",
+        "http://localhost:8080/api/auth/login-biometric",
         {
           audioData: globalAudioBase64,
           imageData: globalImageBase64,
-          timestamp: new Date().toISOString(),
+          verificationPhrase: verificationPhrase,
+          timestamp: timestamp,
+          userLogin: userLogin
         }
       );
 
       console.log("Login response:", response.data);
       toast.success("Login successful!");
 
-      // Store user data and redirect
       localStorage.setItem('userData', JSON.stringify(response.data));
       
       setTimeout(() => {
@@ -154,8 +177,10 @@ const LoginDA = () => {
     setCurrentStep(steps[currentStep]);
 
     if (steps[currentStep] === "audio") {
+      const phrase = generateVerificationPhrase();
+      setVerificationPhrase(phrase);
       startAudioRecording();
-      speak("Please speak for voice verification.");
+      speak(`Please speak the following phrase: ${phrase}`);
     } else if (steps[currentStep] === "photo") {
       startCamera();
       speak("Please look at the camera for photo verification.");
@@ -170,17 +195,24 @@ const LoginDA = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          Touchless Login
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Touchless Login
+          </h1>
+          <div className="text-sm text-gray-500">
+            {timestamp}
+          </div>
+        </div>
+
+        <div className="text-sm text-gray-500 mb-6">
+          User: {userLogin}
+        </div>
 
         <div className="space-y-6">
-          {/* Current Step Display */}
           <div className="text-sm text-gray-500 text-center">
             Step: {currentStep.charAt(0).toUpperCase() + currentStep.slice(1)}
           </div>
 
-          {/* Step Content */}
           {currentStep === "welcome" && (
             <div className="text-center space-y-4">
               <p className="text-gray-600">
@@ -192,7 +224,10 @@ const LoginDA = () => {
           {currentStep === "audio" && (
             <div className="space-y-4">
               <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-gray-700">Recording your voice...</p>
+                <p className="text-gray-700">Please speak this phrase:</p>
+                <p className="text-purple-600 font-semibold mt-2 text-lg">
+                  {verificationPhrase}
+                </p>
               </div>
               {audioRecording && (
                 <div className="bg-green-50 p-4 rounded-lg">
@@ -245,7 +280,6 @@ const LoginDA = () => {
             </div>
           )}
 
-          {/* Navigation Buttons */}
           <div className="flex justify-center">
             {currentStep === "welcome" && (
               <button
