@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface TestRepository extends JpaRepository<Test, String> {
-    List<Test> findByPatientId(String patientId);
+    // Change from findByPatient_Id to findByPatient_UserId
+    List<Test> findByPatient_UserId(String patientId);
     List<Test> findByBookedStatus(TestBookedStatus status);
 }

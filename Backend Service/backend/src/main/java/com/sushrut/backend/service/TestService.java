@@ -80,7 +80,7 @@ public class TestService {
     }
 
     public List<Test> getPatientTests(String patientId) {
-        return testRepository.findByPatientIdAndSummaryIsNotNull(patientId);
+        return testRepository.findByPatient_UserId(patientId);
     }
 
     public Test getTestById(String testId) {
