@@ -13,19 +13,37 @@ class Wav2Vec2FeatureExtractor:
         self.model = Wav2Vec2Model.from_pretrained(model_name).to(device)
 
     def load_audio(self, audio_path, target_sampling_rate=16000):
-        waveform, sample_rate = torchaudio.load(audio_path)
+        try:
+            # First try loading with torchaudio
+            try:
+                waveform, sample_rate = torchaudio.load(audio_path)
+            except Exception as e:
+                print(f"torchaudio failed to load file, trying scipy: {str(e)}")
+                # If torchaudio fails, try using scipy
+                import scipy.io.wavfile as wav
+                sample_rate, audio_data = wav.read(audio_path)
+                waveform = torch.FloatTensor(audio_data)
+                if len(waveform.shape) == 1:
+                    waveform = waveform.unsqueeze(0)
+                else:
+                    waveform = waveform.T
+                waveform = waveform / 32768.0  # Normalize 16-bit audio
 
-        #We never work on stereo, just mono
-        if waveform.shape[0] > 1:
-            waveform = torch.mean(waveform, dim=0, keepdim=True)
+            # Convert to mono if stereo
+            if waveform.shape[0] > 1:
+                waveform = torch.mean(waveform, dim=0, keepdim=True)
 
-        if sample_rate != target_sampling_rate:
-            resampler = torchaudio.transforms.Resample(sample_rate, target_sampling_rate)
-            waveform = resampler(waveform)
+            # Resample if necessary
+            if sample_rate != target_sampling_rate:
+                resampler = torchaudio.transforms.Resample(sample_rate, target_sampling_rate)
+                waveform = resampler(waveform)
 
-        #Ensuring 1 dimentional audio
-        waveform = waveform.squeeze()
-        return waveform
+            # Ensure 1-dimensional audio
+            waveform = waveform.squeeze()
+            return waveform
+
+        except Exception as e:
+            raise Exception(f"Error loading audio file: {str(e)}")
 
     def generate_embedding(self,audio_path):
         waveform = self.load_audio(audio_path)

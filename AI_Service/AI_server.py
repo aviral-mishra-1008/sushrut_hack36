@@ -21,6 +21,9 @@ from LLM_Models.Radiology_Report_Models.Summarization_model.summary_model import
 from LLM_Models.Gemini.Layman import *
 from Masking_Demasking_Module.Masking_Layer import *
 import os
+from pydub import AudioSegment
+import io
+
 
 app = FastAPI()
 
@@ -44,9 +47,7 @@ explainer = Layman(os.getenv('GEMINI_API_KEY'))
 pii_masker = PIIMasker()
 
 
-TEMP_DIR = Path("Temp")
-TEMP_DIR.mkdir(exist_ok=True)
-
+TEMP_DIR = os.path.join(os.getcwd(),"Temp")
 
 @app.post("/query")
 async def process_query(request: Request):
@@ -73,7 +74,7 @@ async def process_query(request: Request):
         return {"status": "error", "message": str(e)}
 
 @app.post("/register_user")
-async def register_user(request: Request):
+async def register_users(request: Request):
     try:
         data = await request.json()
         userID = data.get("userID")
@@ -100,14 +101,15 @@ async def register_user(request: Request):
 
         try:
             audio_data = base64.b64decode(audio_base64)
-            audio_path = TEMP_DIR / f"{userID}.wav"
+            audio_path = os.path.join(TEMP_DIR,f"{userID}.wav")
             with open(audio_path, "wb") as f:
                 f.write(audio_data)
 
             image_data = base64.b64decode(image_base64)
-            image_path = TEMP_DIR / f"{userID}.jpg"
+            image_path =  os.path.join(TEMP_DIR,f"{userID}.jpg")
             with open(image_path, "wb") as f:
                 f.write(image_data)
+            
 
             register_user(audio_path, image_path, userID)
             print("User registered successfully")
@@ -116,6 +118,7 @@ async def register_user(request: Request):
             os.remove(image_path)
 
         except Exception as e:
+            print(f"Invalid base64 data: {str(e)}")
             return JSONResponse(
                 status_code=400,
                 content={
@@ -141,7 +144,7 @@ async def register_user(request: Request):
         )
 
 @app.post("/authenticate_user")
-async def authenticate_user(request: Request):
+async def authenticate_users(request: Request):
     try:
         data = await request.json()
         audio_base64 = data.get("audio_file")
@@ -157,44 +160,64 @@ async def authenticate_user(request: Request):
             )
 
         try:
+            # Decode base64 audio
             audio_data = base64.b64decode(audio_base64)
-            audio_path = TEMP_DIR / "temp_audio.wav"
-            with open(audio_path, "wb") as f:
-                f.write(audio_data)
+            
+            # Convert audio to proper WAV format using pydub
+            try:
+                # Load audio from bytes
+                audio = AudioSegment.from_file(io.BytesIO(audio_data))
+                
+                # Convert to mono if stereo
+                if audio.channels > 1:
+                    audio = audio.set_channels(1)
+                
+                # Export as WAV with specific parameters
+                audio = audio.set_frame_rate(16000)  # Set sample rate to 16kHz
+                audio = audio.set_sample_width(2)    # Set to 16-bit
+                
+                # Save the processed audio
+                audio_path = os.path.join(TEMP_DIR, "temp_audio.wav")
+                audio.export(audio_path, format="wav", parameters=["-ac", "1", "-ar", "16000"])
+                print("Audio file saved successfully")
+            
+            except Exception as audio_e:
+                print(f"Error processing audio: {str(audio_e)}")
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "status": "error",
+                        "message": f"Error processing audio: {str(audio_e)}",
+                    }
+                )
 
+            # Process image
             image_data = base64.b64decode(image_base64)
-            image_path = TEMP_DIR / "temp_image.jpg"
+            image_path = os.path.join(TEMP_DIR, "temp_image.jpg")
             with open(image_path, "wb") as f:
                 f.write(image_data)
+            print("Image file saved successfully")
 
             userID = authenticate_user(audio_path, image_path)
             print("User authenticated successfully")
 
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "userID": userID,
+                    "message": "Authentication successful",
+                }
+            )
+
         except Exception as e:
+            print(f"Processing error: {str(e)}")
             return JSONResponse(
                 status_code=400,
                 content={
                     "status": "error",
-                    "message": f"Invalid base64 data: {str(e)}",
+                    "message": f"Processing error: {str(e)}",
                 }
             )
-        
-        if userID == -1:
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "status": "error",
-                    "message": "Authentication failed",
-                }
-            )
-        
-        return JSONResponse(
-            status_code=200,
-            content={
-                "userID": userID,
-                "message": "Authentication successful",
-            }
-        )
 
     except Exception as e:
         return JSONResponse(
@@ -205,9 +228,6 @@ async def authenticate_user(request: Request):
             }
         )
 
-
-TEMP_DIR = Path("AI_Service/Temp")
-TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 @app.post("/summarize")
 async def summarize_report(request: Request):
@@ -236,7 +256,7 @@ async def summarize_report(request: Request):
 
         try:
             pdf_content = base64.b64decode(file_content)
-            pdf_path = TEMP_DIR / "test.pdf"
+            pdf_path =  os.path.join(TEMP_DIR,"test.pdf")
             with open(pdf_path, "wb") as f:
                 f.write(pdf_content)
         except Exception as e:

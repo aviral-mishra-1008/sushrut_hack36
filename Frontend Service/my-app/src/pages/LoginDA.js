@@ -137,13 +137,13 @@ const LoginDA = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/login-biometric",
+        "http://localhost:8000/authenticate_user",
         {
-          audioData: globalAudioBase64,
-          imageData: globalImageBase64,
+          audio_file: globalAudioBase64,
+          image_file: globalImageBase64,
           verificationPhrase: verificationPhrase,
-          timestamp: timestamp,
-          userLogin: userLogin
+          // timestamp: timestamp,
+          // userLogin: userLogin
         }
       );
 
