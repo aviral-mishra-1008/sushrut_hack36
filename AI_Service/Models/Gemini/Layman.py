@@ -4,7 +4,7 @@ class Layman:
     def __init__(self, api_key: str):
         # Configure the Gemini API
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-flash-2.0')
+        self.model = genai.GenerativeModel('gemini-2.0-flash')
 
     def explain(self, medical_text: str) -> str:
         """
