@@ -1,43 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { TestCard } from '../components/TestCard';
 
 export const ModeratorDashboard = () => {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const moderatorUsername = localStorage.getItem('moderatorUsername');
+  const timestamp = localStorage.getItem('timestamp');
 
   useEffect(() => {
+    if (!moderatorUsername) {
+      navigate('/moderator/login');
+      return;
+    }
     fetchTests();
-  }, []);
+  }, [navigate, moderatorUsername]);
 
   const fetchTests = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/moderator/tests', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('moderatorToken')}`
-        }
-      });
+      const response = await axios.get('http://localhost:8080/api/tests/pending-summaries');
       setTests(response.data);
     } catch (error) {
-      if (error.response?.status === 401) {
-        localStorage.removeItem('moderatorToken');
-        navigate('/moderator/login');
-      }
+      toast.error('Failed to fetch tests');
+      console.error('Error fetching tests:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleTestUpdate = (updatedTest) => {
+    setTests(currentTests => 
+      currentTests.map(test => 
+        test.TestId === updatedTest.TestId ? updatedTest : test
+      )
+    );
+  };
+
   const handleLogout = () => {
-    localStorage.removeItem('moderatorToken');
+    localStorage.removeItem('moderatorUsername');
+    localStorage.removeItem('timestamp');
+    toast.success('Logged out successfully');
     navigate('/moderator/login');
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-900"></div>
       </div>
     );
   }
@@ -46,10 +58,18 @@ export const ModeratorDashboard = () => {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold text-gray-800">Test Reports Dashboard</h1>
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-800">Test Reports Dashboard</h1>
+            <div className="mt-2 text-sm text-gray-600">
+              <p>Moderator: {moderatorUsername}</p>
+              <p>Session started: {timestamp}</p>
+              <p>Current time: {new Date().toLocaleString()}</p>
+            </div>
+          </div>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 
+                     transition-colors duration-300"
           >
             Logout
           </button>
@@ -57,40 +77,18 @@ export const ModeratorDashboard = () => {
 
         <div className="grid gap-6">
           {tests.map((test) => (
-            <div
-              key={test.TestId}
-              className="bg-white p-6 rounded-lg shadow-sm"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-800">{test.name}</h3>
-                  <p className="text-sm text-gray-500">Patient: {test.patient.name}</p>
-                  <p className="text-sm text-gray-500">Type: {test.testType}</p>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-sm ${
-                  test.summaryStatus === 'VERIFIED' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {test.summaryStatus}
-                </span>
-              </div>
-              
-              <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700">Summary:</h4>
-                <p className="mt-1 text-gray-600">{test.summary}</p>
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <button
-                  onClick={() => navigate(`/moderator/test/${test.TestId}`)}
-                  className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                >
-                  View Details
-                </button>
-              </div>
-            </div>
+            <TestCard 
+              key={test.TestId} 
+              test={test} 
+              onTestUpdate={handleTestUpdate}
+            />
           ))}
+
+          {tests.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No pending test reports found
+            </div>
+          )}
         </div>
       </div>
     </div>

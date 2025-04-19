@@ -27,6 +27,7 @@ function App() {
         <Route path = "signupDA" element = { <SignUpDA/> }/>
         <Route path = "touchless" element = { <LoginDA/> }/>
 
+
         {/* Redirect /moderator to /moderator/dashboard */}
         <Route 
           path="/moderator" 
@@ -34,20 +35,20 @@ function App() {
         />
 
         {/* Login route */}
-        <Route 
+        {/* <Route 
           path="/moderator/login" 
           element={<ModeratorLogin />} 
-        />
+        /> */}
 
         {/* Protected dashboard route */}
-        <Route
+        {/* <Route
           path="/moderator/dashboard"
           element={
             // <ProtectedRoute>
               <ModeratorDashboard />
             // </ProtectedRoute>
           }
-        />
+        /> */}
         
          {/* Protected Patient Routes */}
          <Route
@@ -68,6 +69,8 @@ function App() {
             </ProtectedRoute2>
           }
         />
+                <Route path="/moderator/login" element={<ModeratorLogin />} />
+                <Route path="/moderator/dashboard" element={<ModeratorDashboard />} />
 
       </Routes>
     </div>
