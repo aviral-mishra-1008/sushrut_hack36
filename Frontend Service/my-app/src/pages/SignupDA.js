@@ -50,6 +50,10 @@ const SignUpDA = () => {
   const [currentStep, setCurrentStep] = useState("welcome");
   const [isListening, setIsListening] = useState(false);
   const [verificationText, setVerificationText] = useState("");
+  // Global states for media data
+  const [globalBase64Image, setGlobalBase64Image] = useState(null);
+  const [globalAudioRecording, setGlobalAudioRecording] = useState(null);
+
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -102,10 +106,17 @@ const SignUpDA = () => {
       };
 
       mediaRecorderRef.current.onstop = () => {
-        console.log("HI")
+        console.log("HI");
         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioRecording(audioBlob);
-        console.log("Verification audio recorded:", audioBlob);
+        // Convert audio blob to base64
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64Audio = reader.result.split(",")[1];
+          setGlobalAudioRecording(base64Audio);
+          console.log("Audio recorded and stored as base64",base64Audio);
+        };
+        reader.readAsDataURL(audioBlob);
       };
 
       mediaRecorderRef.current.start();
@@ -203,99 +214,95 @@ const SignUpDA = () => {
     }
   };
 
-//   const startCamera = async () => {
-//     try {
-//       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-//       if (videoRef.current) {
-//         videoRef.current.srcObject = stream;
-//       }
+  //   const startCamera = async () => {
+  //     try {
+  //       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  //       if (videoRef.current) {
+  //         videoRef.current.srcObject = stream;
+  //       }
 
-//       // Start recording audio
-//       const audioStream = await navigator.mediaDevices.getUserMedia({
-//         audio: true,
-//       });
-//       mediaRecorderRef.current = new MediaRecorder(audioStream);
+  //       // Start recording audio
+  //       const audioStream = await navigator.mediaDevices.getUserMedia({
+  //         audio: true,
+  //       });
+  //       mediaRecorderRef.current = new MediaRecorder(audioStream);
 
-//       mediaRecorderRef.current.ondataavailable = (e) => {
-//         chunksRef.current.push(e.data);
-//       };
+  //       mediaRecorderRef.current.ondataavailable = (e) => {
+  //         chunksRef.current.push(e.data);
+  //       };
 
-//       mediaRecorderRef.current.onstop = () => {
-//         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
-//         setAudioRecording(audioBlob);
-//         chunksRef.current = [];
-//       };
+  //       mediaRecorderRef.current.onstop = () => {
+  //         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+  //         setAudioRecording(audioBlob);
+  //         chunksRef.current = [];
+  //       };
 
-//       mediaRecorderRef.current.start();
-//     } catch (error) {
-//       console.error("Error accessing camera:", error);
-//       setMessage(
-//         "Failed to access camera. Please ensure camera permissions are granted."
-//       );
-//       speak(
-//         "Failed to access camera. Please ensure camera permissions are granted."
-//       );
-//     }
-//   };
+  //       mediaRecorderRef.current.start();
+  //     } catch (error) {
+  //       console.error("Error accessing camera:", error);
+  //       setMessage(
+  //         "Failed to access camera. Please ensure camera permissions are granted."
+  //       );
+  //       speak(
+  //         "Failed to access camera. Please ensure camera permissions are granted."
+  //       );
+  //     }
+  //   };
 
-const startCamera = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      setMessage("Failed to access camera. Please check permissions.");
+      speak("Failed to access camera. Please check permissions.");
     }
-  } catch (error) {
-    console.error("Error accessing camera:", error);
-    setMessage("Failed to access camera. Please check permissions.");
-    speak("Failed to access camera. Please check permissions.");
-  }
-};
+  };
 
-//   const capturePhoto = () => {
-//     if (videoRef.current) {
-//       const canvas = document.createElement("canvas");
-//       canvas.width = videoRef.current.videoWidth;
-//       canvas.height = videoRef.current.videoHeight;
-//       canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
-//       const imageDataUrl = canvas.toDataURL("image/jpeg");
-//       setCapturedImage(imageDataUrl);
+  //   const capturePhoto = () => {
+  //     if (videoRef.current) {
+  //       const canvas = document.createElement("canvas");
+  //       canvas.width = videoRef.current.videoWidth;
+  //       canvas.height = videoRef.current.videoHeight;
+  //       canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
+  //       const imageDataUrl = canvas.toDataURL("image/jpeg");
+  //       setCapturedImage(imageDataUrl);
 
-//       // Stop video stream and audio recording
-//       const tracks = videoRef.current.srcObject.getTracks();
-//       tracks.forEach((track) => track.stop());
-//       if (
-//         mediaRecorderRef.current &&
-//         mediaRecorderRef.current.state !== "inactive"
-//       ) {
-//         mediaRecorderRef.current.stop();
-//       }
-//     }
-//   };
+  //       // Stop video stream and audio recording
+  //       const tracks = videoRef.current.srcObject.getTracks();
+  //       tracks.forEach((track) => track.stop());
+  //       if (
+  //         mediaRecorderRef.current &&
+  //         mediaRecorderRef.current.state !== "inactive"
+  //       ) {
+  //         mediaRecorderRef.current.stop();
+  //       }
+  //     }
+  //   };
 
- 
-const capturePhoto = () => {
-  if (videoRef.current) {
-    const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
-    const imageDataUrl = canvas.toDataURL("image/jpeg");
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement("canvas");
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
+      // Get base64 string directly
+      const base64Image = canvas.toDataURL("image/jpeg").split(",")[1];
+      setCapturedImage(true);
+      setGlobalBase64Image(base64Image);
+      console.log("Photo captured as base64", base64Image);
 
-    // Convert to Blob immediately
-    fetch(imageDataUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        setCapturedImage(blob);
-        console.log("Photo captured and converted to blob:", blob);
-      });
-
-    // Stop video stream
-    const tracks = videoRef.current.srcObject.getTracks();
-    tracks.forEach((track) => track.stop());
-  }
-};
+      // Stop video stream
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach((track) => track.stop());
+    }
+  };
   const submitData = async () => {
     try {
+      const userid = "36630102-9f82-42c5-aaaf-cfaaed2895be";
       // First API call to backend
       const backendResponse = await axios.post(
         "http://localhost:8000/api/auth/patient/signup",
@@ -315,12 +322,45 @@ const capturePhoto = () => {
         }
       );
       console.log("Backend registration response:", backendResponse.data);
-      const userid = "36630102-9f82-42c5-aaaf-cfaaed2895be";
-      const llmReponse = await axios.post()
-    } catch (error) {
-      console.error("Error during registration:", error);
-      speak("Sorry, there was an error during registration. Please try again.");
+      // Verify we have both image and audio
+      if (!globalBase64Image || !globalAudioRecording) {
+        throw new Error("Missing image or audio recording");
+      }
+       console.log("global audio",globalAudioRecording);
+       console.log("global image",globalBase64Image);
+       // Send to LLM endpoint with base64 data
+    const llmResponse = await axios.post(
+      "http://localhost:8000/register_user",
+      {
+        userID: "36630102-9f82-42c5-aaaf-cfaaed2895be",
+        image_file: globalBase64Image,
+        audio_file: globalAudioRecording,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (llmResponse.data.success) {
+      // Clear sensitive data
+      setGlobalBase64Image(null);
+      setGlobalAudioRecording(null);
+      
+      speak("Registration successful! Redirecting to dashboard...");
+      setTimeout(() => navigate("/dashboard"), 2000);
+    } else {
+      throw new Error("LLM processing failed");
     }
+
+  } catch (error) {
+    console.error("Error during registration:", error);
+    const errorMessage = error.response?.data?.message || 
+      "Sorry, there was an error during registration. Please try again.";
+    speak(errorMessage);
+    
+  }
   };
 
   const proceedToNextStep = () => {
