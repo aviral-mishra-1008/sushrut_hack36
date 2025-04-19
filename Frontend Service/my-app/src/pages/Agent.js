@@ -174,7 +174,7 @@ const Agent = () => {
      try {
     console.log("searchQuery", searchQuery);
     console.log("selectedLanguage", selectedLanguage);
-    const response = await axios.post('http://localhost:8000/api/julep', {
+    const response = await axios.post('http://localhost:8002/api/julep', {
       query: searchQuery,
       timestamp: '2025-04-19 09:53:39', // You should use dynamic current timestamp
       user: 'mangalgithub',
@@ -187,7 +187,7 @@ const Agent = () => {
 
     if (response.data) {
       console.log('response ', response.data);
-      setSearchResults(response.data);
+      setSearchResults(JSON.parse(response.data));
     }
   } catch (error) {
     console.error('Error fetching data:', error);

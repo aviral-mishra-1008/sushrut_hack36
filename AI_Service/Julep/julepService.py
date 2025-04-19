@@ -62,7 +62,7 @@ class APICaller:
         url = "http://127.0.0.1:8080/api/" + endpoint
         if endpoint == 'query_llm':
             data = {
-                'prompt': self.prompt
+                'query': self.prompt
             }
             res = requests.post(url="http://127.0.0.1:8080/api/llm/query", json=data)
             return res.content
