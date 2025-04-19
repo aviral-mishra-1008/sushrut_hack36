@@ -10,6 +10,9 @@ import { ModeratorLogin } from './pages/ModeratorLogin';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { ModeratorDashboard } from './pages/ModeratorDashboard';
 import { Navigate } from 'react-router-dom';
+import { ProtectedRoute2 } from './routes/ProtectedRoute2';
+import PatientDashboard from './pages/PatientDashboard';
+import DoctorDashboard from './pages/DoctorDashboard';
 function App() {
   return (
     <BrowserRouter>
@@ -43,6 +46,27 @@ function App() {
             // </ProtectedRoute>
           }
         />
+        
+         {/* Protected Patient Routes */}
+         <Route
+          path="/patient/dashboard"
+          element={
+            <ProtectedRoute2 allowedRole="patient">
+              <PatientDashboard />
+            </ProtectedRoute2>
+          }
+        />
+
+        {/* Protected Doctor Routes */}
+        <Route
+          path="/doctor/dashboard"
+          element={
+            <ProtectedRoute2 allowedRole="doctor">
+              <DoctorDashboard />
+            </ProtectedRoute2>
+          }
+        />
+
       </Routes>
     </div>
     </BrowserRouter>

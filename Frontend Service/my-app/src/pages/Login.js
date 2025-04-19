@@ -15,7 +15,6 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your login logic here
     setLoading(true);
 
     try {
@@ -27,6 +26,11 @@ const Login = () => {
           role: role,
         }
       );
+      
+      // Store token and role in localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userRole', role);
+      
       console.log("Login response:", response.data);
       toast.success("Login successful!");
 
@@ -35,7 +39,7 @@ const Login = () => {
         password: "",
       });
 
-      // Redirect based on role (adjust paths as needed)
+      // Redirect based on role
       setTimeout(() => {
         if (role === "patient") {
           navigate("/patient/dashboard");
@@ -47,7 +51,6 @@ const Login = () => {
       const errorMessage =
         error.response?.data?.message || "Login failed. Please try again.";
       toast.error(errorMessage);
-
       console.error("Login error:", error);
     } finally {
       setLoading(false);
@@ -55,14 +58,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center flex-col bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 p-4">
+    <div className="min-h-screen flex items-start justify-start p-8 md:p-16 bg-gray-50">
       <motion.div
-        className="bg-black/40 backdrop-blur-sm p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200/10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-3xl font-bold text-center text-white mb-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">
           Login
         </h2>
 
@@ -70,8 +73,8 @@ const Login = () => {
           <button
             className={`flex-1 py-2 rounded-lg transition-all duration-300 ${
               role === "patient"
-                ? "bg-blue-600/90 text-white"
-                : "bg-gray-100/10 text-gray-200 hover:bg-gray-100/20"
+                ? "bg-gray-900 text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
             onClick={() => setRole("patient")}
           >
@@ -80,8 +83,8 @@ const Login = () => {
           <button
             className={`flex-1 py-2 rounded-lg transition-all duration-300 ${
               role === "doctor"
-                ? "bg-blue-600/90 text-white"
-                : "bg-gray-100/10 text-gray-200 hover:bg-gray-100/20"
+                ? "bg-gray-900 text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
             onClick={() => setRole("doctor")}
           >
@@ -98,7 +101,7 @@ const Login = () => {
             <input
               type="email"
               placeholder="Email"
-              className="w-full px-4 py-3 rounded-lg bg-gray-100/10 border border-gray-200/20 focus:border-blue-500/50 focus:bg-gray-100/20 focus:outline-none transition-all text-white placeholder-gray-400"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-gray-400 focus:outline-none transition-all text-gray-800 placeholder-gray-400 bg-white"
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
@@ -115,7 +118,7 @@ const Login = () => {
             <input
               type="password"
               placeholder="Password"
-              className="w-full px-4 py-3 rounded-lg bg-gray-100/10 border border-gray-200/20 focus:border-blue-500/50 focus:bg-gray-100/20 focus:outline-none transition-all text-white placeholder-gray-400"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-gray-400 focus:outline-none transition-all text-gray-800 placeholder-gray-400 bg-white"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
@@ -128,8 +131,8 @@ const Login = () => {
             type="submit"
             className={`w-full py-3 rounded-lg transition-all duration-300 ${
               loading
-                ? "bg-blue-400/50 cursor-not-allowed"
-                : "bg-blue-600/80 hover:bg-blue-700/80"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gray-900 hover:bg-gray-800"
             } text-white`}
             whileHover={{ scale: loading ? 1 : 1.02 }}
             whileTap={{ scale: loading ? 1 : 0.98 }}
@@ -166,7 +169,7 @@ const Login = () => {
         </form>
         <Link
           to="/signup"
-          className="text-blue-400 hover:text-blue-300 transition-colors duration-300 text-center block mt-4"
+          className="text-gray-600 hover:text-gray-800 transition-colors duration-300 text-center block mt-4"
         >
           Not have an account? Sign Up
         </Link>

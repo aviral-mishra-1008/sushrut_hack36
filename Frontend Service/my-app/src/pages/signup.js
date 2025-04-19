@@ -77,22 +77,23 @@ const Signup = () => {
     }));
   };
 
+  // const commonInputClasses =
+  //   "w-full px-4 py-3 rounded-lg bg-gray-100/10 border border-gray-200/20 focus:border-blue-500/50 focus:bg-gray-100/20 focus:outline-none transition-all text-white placeholder-gray-400";
   const commonInputClasses =
-    "w-full px-4 py-3 rounded-lg bg-gray-100/10 border border-gray-200/20 focus:border-blue-500/50 focus:bg-gray-100/20 focus:outline-none transition-all text-white placeholder-gray-400";
-
+  "w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-gray-400 focus:outline-none transition-all text-gray-800 placeholder-gray-400 bg-white";
   return (
-    <div className="min-h-screen flex items-center justify-center flex-col bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 p-4">
+    <div className="min-h-screen flex items-start justify-start p-8 md:p-16 bg-gray-50">
       <motion.div
-        className="bg-black/40 backdrop-blur-sm p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200/10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-xl"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
       >
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-white">Sign Up</h2>
+          <h2 className="text-3xl font-bold text-gray-800">Sign Up</h2>
           <Link
             to="/login"
-            className="text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-gray-600 hover:text-gray-800 transition-colors"
           >
             Already have an account? Login
           </Link>
@@ -104,8 +105,8 @@ const Signup = () => {
             type="button"
             className={`flex-1 py-3 rounded-lg transition-all duration-300 ${
               role === "patient"
-                ? "bg-blue-600/90 text-white"
-                : "bg-gray-100/10 text-gray-200 hover:bg-gray-100/20"
+                ? "bg-gray-900 text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
             onClick={() => setRole("patient")}
             whileHover={{ scale: 1.02 }}
@@ -117,8 +118,8 @@ const Signup = () => {
             type="button"
             className={`flex-1 py-3 rounded-lg transition-all duration-300 ${
               role === "doctor"
-                ? "bg-blue-600/90 text-white"
-                : "bg-gray-100/10 text-gray-200 hover:bg-gray-100/20"
+                ? "bg-gray-900 text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
             onClick={() => setRole("doctor")}
             whileHover={{ scale: 1.02 }}
@@ -207,16 +208,16 @@ const Signup = () => {
                 onChange={handleInputChange}
                 required
               >
-                <option value="" className="bg-gray-800">
+                <option value="" className="text-gray-800">
                   Select Gender
                 </option>
-                <option value="male" className="bg-gray-800">
+                <option value="male" className="text-gray-800">
                   Male
                 </option>
-                <option value="female" className="bg-gray-800">
+                <option value="female" className="text-gray-800">
                   Female
                 </option>
-                <option value="other" className="bg-gray-800">
+                <option value="other" className="text-gray-800">
                   Other
                 </option>
               </select>
@@ -239,12 +240,12 @@ const Signup = () => {
                   onChange={handleInputChange}
                   required
                 >
-                  <option value="" className="bg-gray-800">
+                  <option value="" className="text-gray-800">
                     Select Blood Group
                   </option>
                   {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
                     (group) => (
-                      <option key={group} value={group} className="bg-gray-800">
+                      <option key={group} value={group} className="text-gray-800">
                         {group}
                       </option>
                     )
@@ -405,8 +406,8 @@ const Signup = () => {
             type="submit"
             className={`w-full py-3 rounded-lg transition-all duration-300 ${
               loading
-                ? "bg-blue-400/50 cursor-not-allowed"
-                : "bg-blue-600/80 hover:bg-blue-700/80"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gray-900 hover:bg-gray-800"
             } text-white`}
             whileHover={{ scale: loading ? 1 : 1.02 }}
             whileTap={{ scale: loading ? 1 : 0.98 }}
