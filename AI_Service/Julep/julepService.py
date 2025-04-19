@@ -8,10 +8,11 @@ from pydantic import BaseModel
 import sys
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
+import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from translate import to_english
+from translate import to_english, to_vernacular
 from Masking_Demasking_Module.Masking_Layer import PIIMasker
 
 pii = PIIMasker()
@@ -97,7 +98,11 @@ async def getIntent(prompt: Request):
     data = await prompt.json()
     query = data.get('query', '')
     language = data.get('language', '')
+    print(query, language)
     if language != 'en-US' and language != 'en-GB':
-        query = to_english(query, language)
+        query = await to_english(query, language)
     call = APICaller(query)
-    return call.callAPI()
+    mapping = json.loads(call.callAPI())
+    mapping['description'] = await to_vernacular(mapping['description'], language_code=language)
+    mapping = json.dumps(mapping)
+    return mapping

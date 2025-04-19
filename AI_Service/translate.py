@@ -13,3 +13,13 @@ async def to_english(text, language_code):
     except Exception as e:
         raise Exception(f"Translation failed: {str(e)}")
 
+async def to_vernacular(text, language_code):
+    try:
+        translator = Translator()
+        dest_lang = language_code.split('-')[0]
+        translation = await translator.translate(text, src='en', dest=dest_lang)
+        print(translation.text)
+        return translation.text
+    
+    except Exception as e:
+        raise Exception(f"Translation failed: {str(e)}")
