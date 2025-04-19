@@ -18,26 +18,24 @@ class Gemini():
 
             UNCOMMENT FOR TESTING PURPOSE ONLY
         '''
-        # if departments is None:
-        #             departments = [
-        #                             "Cardiology",
-        #                             "Dermatology",
-        #                             "Neurology",
-        #                             "Orthopedics",
-        #                             "Gastroenterology",
-        #                             "Ophthalmology",
-        #                             "ENT",
-        #                             "Pulmonology",
-        #                             "Endocrinology",
-        #                             "General Medicine"
-        #                         ]
-        # self.departments = departments
+        self.departments = [
+                                    "Cardiology",
+                                    "Dermatology",
+                                    "Neurology",
+                                    "Orthopedics",
+                                    "Gastroenterology",
+                                    "Ophthalmology",
+                                    "ENT",
+                                    "Pulmonology",
+                                    "Endocrinology",
+                                    "General Medicine"
+                                ]
 
 
-    def predict_department(self,symptoms: str,departments:list) -> dict:
+    def predict_department(self,symptoms: str) -> dict:
         prompt = f"""Given these patient symptoms and available departments, determine the most appropriate department.    
                      Available Departments:
-                     {', '.join(departments)}
+                     {', '.join(self.departments)}
                      Patient Symptoms:
                         {symptoms}
                     
