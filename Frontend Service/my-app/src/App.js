@@ -1,10 +1,8 @@
-import logo from './logo.svg';
-import './App.css';
-import { BrowserRouter, Routes } from 'react-router-dom';
-import { Route } from 'react-router-dom';
-import Login from './pages/Login';
+import "./App.css";
+import { BrowserRouter, Routes } from "react-router-dom";
+import { Route } from "react-router-dom";
+import Login from "./pages/Login";
 import Signup from './pages/signup';
-import Navbar from './components/Navbar';
 import Agent from './pages/Agent';
 import { ModeratorLogin } from './pages/ModeratorLogin';
 import { ProtectedRoute } from './routes/ProtectedRoute';
