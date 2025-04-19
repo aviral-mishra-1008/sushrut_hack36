@@ -50,23 +50,23 @@ const SignUpDA = () => {
   const [currentStep, setCurrentStep] = useState("welcome");
   const [isListening, setIsListening] = useState(false);
   const [verificationText, setVerificationText] = useState("");
- const [userData, setUserData] = useState({
-   name: "",
-   email: "",
-   phoneNumber: "",
-   password: "SecurePass@2025",
-   verificationString: "",
-   userId: null,
-   // Additional hardcoded fields
-   gender: "Male",
-   role: "PATIENT",
-   bloodGroup: "O+",
-   height: 175.5,
-   weight: 70.2,
-   diseases: ["Diabetes", "Hypertension"],
-   familyDiseases: ["Heart Disease"],
-   allergies: ["Pollen", "Dust"],
- });
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    password: "SecurePass@2025",
+    verificationString: "",
+    userId: null,
+    // Additional hardcoded fields
+    gender: "Male",
+    role: "PATIENT",
+    bloodGroup: "O+",
+    height: 175.5,
+    weight: 70.2,
+    diseases: ["Diabetes", "Hypertension"],
+    familyDiseases: ["Heart Disease"],
+    allergies: ["Pollen", "Dust"],
+  });
   const [capturedImage, setCapturedImage] = useState(null);
   const [audioRecording, setAudioRecording] = useState(null);
   const [message, setMessage] = useState("");
@@ -85,7 +85,46 @@ const SignUpDA = () => {
     utterance.lang = "en-US";
     window.speechSynthesis.speak(utterance);
   };
+  // New function to handle audio recording
+  const startAudioRecording = async () => {
+    try {
+      const audioStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
 
+      mediaRecorderRef.current = new MediaRecorder(audioStream);
+      chunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        console.log("HI")
+        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setAudioRecording(audioBlob);
+        console.log("Verification audio recorded:", audioBlob);
+      };
+
+      mediaRecorderRef.current.start();
+      console.log("Started recording verification audio");
+    } catch (error) {
+      console.error("Error starting audio recording:", error);
+      speak("Failed to access microphone. Please check permissions.");
+    }
+  };
+  const stopAudioRecording = () => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      mediaRecorderRef.current.stop();
+      const tracks = mediaRecorderRef.current.stream.getTracks();
+      tracks.forEach((track) => track.stop());
+    }
+  };
   const startListening = () => {
     if (!("webkitSpeechRecognition" in window)) {
       alert("Speech recognition is not supported in this browser");
@@ -98,6 +137,11 @@ const SignUpDA = () => {
     recognitionRef.current.continuous = true;
     recognitionRef.current.interimResults = true;
     recognitionRef.current.lang = "en-US";
+
+    // Start audio recording when verification step begins
+    if (currentStep === "verify") {
+      startAudioRecording();
+    }
 
     recognitionRef.current.onstart = () => {
       setIsListening(true);
@@ -132,6 +176,7 @@ const SignUpDA = () => {
               .toLowerCase()
               .includes(userData.verificationString.toLowerCase())
           ) {
+            stopAudioRecording();
             stopListening();
             proceedToNextStep();
           }
@@ -158,62 +203,97 @@ const SignUpDA = () => {
     }
   };
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+//   const startCamera = async () => {
+//     try {
+//       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+//       if (videoRef.current) {
+//         videoRef.current.srcObject = stream;
+//       }
 
-      // Start recording audio
-      const audioStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      mediaRecorderRef.current = new MediaRecorder(audioStream);
+//       // Start recording audio
+//       const audioStream = await navigator.mediaDevices.getUserMedia({
+//         audio: true,
+//       });
+//       mediaRecorderRef.current = new MediaRecorder(audioStream);
 
-      mediaRecorderRef.current.ondataavailable = (e) => {
-        chunksRef.current.push(e.data);
-      };
+//       mediaRecorderRef.current.ondataavailable = (e) => {
+//         chunksRef.current.push(e.data);
+//       };
 
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
-        setAudioRecording(audioBlob);
-        chunksRef.current = [];
-      };
+//       mediaRecorderRef.current.onstop = () => {
+//         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+//         setAudioRecording(audioBlob);
+//         chunksRef.current = [];
+//       };
 
-      mediaRecorderRef.current.start();
-    } catch (error) {
-      console.error("Error accessing camera:", error);
-      setMessage(
-        "Failed to access camera. Please ensure camera permissions are granted."
-      );
-      speak(
-        "Failed to access camera. Please ensure camera permissions are granted."
-      );
-    }
-  };
+//       mediaRecorderRef.current.start();
+//     } catch (error) {
+//       console.error("Error accessing camera:", error);
+//       setMessage(
+//         "Failed to access camera. Please ensure camera permissions are granted."
+//       );
+//       speak(
+//         "Failed to access camera. Please ensure camera permissions are granted."
+//       );
+//     }
+//   };
 
-  const capturePhoto = () => {
+const startCamera = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     if (videoRef.current) {
-      const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
-      const imageDataUrl = canvas.toDataURL("image/jpeg");
-      setCapturedImage(imageDataUrl);
-
-      // Stop video stream and audio recording
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach((track) => track.stop());
-      if (
-        mediaRecorderRef.current &&
-        mediaRecorderRef.current.state !== "inactive"
-      ) {
-        mediaRecorderRef.current.stop();
-      }
+      videoRef.current.srcObject = stream;
     }
-  };
+  } catch (error) {
+    console.error("Error accessing camera:", error);
+    setMessage("Failed to access camera. Please check permissions.");
+    speak("Failed to access camera. Please check permissions.");
+  }
+};
 
+//   const capturePhoto = () => {
+//     if (videoRef.current) {
+//       const canvas = document.createElement("canvas");
+//       canvas.width = videoRef.current.videoWidth;
+//       canvas.height = videoRef.current.videoHeight;
+//       canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
+//       const imageDataUrl = canvas.toDataURL("image/jpeg");
+//       setCapturedImage(imageDataUrl);
+
+//       // Stop video stream and audio recording
+//       const tracks = videoRef.current.srcObject.getTracks();
+//       tracks.forEach((track) => track.stop());
+//       if (
+//         mediaRecorderRef.current &&
+//         mediaRecorderRef.current.state !== "inactive"
+//       ) {
+//         mediaRecorderRef.current.stop();
+//       }
+//     }
+//   };
+
+ 
+const capturePhoto = () => {
+  if (videoRef.current) {
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
+    const imageDataUrl = canvas.toDataURL("image/jpeg");
+
+    // Convert to Blob immediately
+    fetch(imageDataUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        setCapturedImage(blob);
+        console.log("Photo captured and converted to blob:", blob);
+      });
+
+    // Stop video stream
+    const tracks = videoRef.current.srcObject.getTracks();
+    tracks.forEach((track) => track.stop());
+  }
+};
   const submitData = async () => {
     try {
       // First API call to backend
@@ -235,7 +315,8 @@ const SignUpDA = () => {
         }
       );
       console.log("Backend registration response:", backendResponse.data);
-     
+      const userid = "36630102-9f82-42c5-aaaf-cfaaed2895be";
+      const llmReponse = await axios.post()
     } catch (error) {
       console.error("Error during registration:", error);
       speak("Sorry, there was an error during registration. Please try again.");
@@ -340,8 +421,6 @@ const SignUpDA = () => {
       </div>
     );
   }
- 
-   
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 p-8">
@@ -413,11 +492,28 @@ const SignUpDA = () => {
             )}
 
             {currentStep === "verify" && (
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-gray-700">Verification Phrase:</p>
-                <p className="text-purple-600 font-medium mt-2">
-                  {userData.verificationString}
-                </p>
+              <div className="space-y-4">
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <p className="text-gray-700">Verification Phrase:</p>
+                  <p className="text-purple-600 font-medium mt-2">
+                    {userData.verificationString}
+                  </p>
+                </div>
+                {isListening ? (
+                  <motion.div
+                    className="text-purple-600 text-center"
+                    animate={{ opacity: [1, 0.5, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    Listening for verification phrase...
+                  </motion.div>
+                ) : audioRecording ? (
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-green-700">
+                      Verification audio recorded successfully!
+                    </p>
+                  </div>
+                ) : null}
               </div>
             )}
 
@@ -429,12 +525,33 @@ const SignUpDA = () => {
                   playsInline
                   className="w-full rounded-lg"
                 />
-                <button
-                  onClick={capturePhoto}
-                  className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Capture Photo
-                </button>
+                {!capturedImage ? (
+                  <button
+                    onClick={capturePhoto}
+                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg 
+                   hover:bg-purple-700 transition-colors"
+                  >
+                    Capture Photo
+                  </button>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <p className="text-green-700">
+                        Photo captured successfully!
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setCapturedImage(null);
+                        startCamera();
+                      }}
+                      className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg 
+                     hover:bg-gray-700 transition-colors"
+                    >
+                      Retake Photo
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
