@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -17,15 +17,18 @@ const Signup = () => {
     name: "",
     email: "",
     password: "",
-    phoneNumber: "",
+    confirmPassword: "",
+    phNumber: "",
     gender: "",
+    
     // Patient specific fields
     bloodGroup: "",
     height: "",
     weight: "",
-    diseasesList: "",
-    familyDiseasesList: "",
-    allergiesList: "",
+    diseases: "",
+    familyDiseases: "",
+    allergies: "",
+    
     // Doctor specific fields
     licenseNumber: "",
     department: "",
@@ -35,38 +38,111 @@ const Signup = () => {
     hospitalName: "",
     address: "",
     city: "",
-    state: "",
+    state: ""
   });
+
+  // const validateForm = () => {
+  //   // Common validations
+  //   if (formData.password !== formData.confirmPassword) {
+  //     toast.error("Passwords do not match");
+  //     return false;
+  //   }
+
+  //   if (formData.password.length < 8) {
+  //     toast.error("Password must be at least 8 characters long");
+  //     return false;
+  //   }
+
+  //   if (!/^\d{10}$/.test(formData.phNumber)) {
+  //     toast.error("Please enter a valid 10-digit phone number");
+  //     return false;
+  //   }
+
+  //   if (role === "patient") {
+  //     if (!formData.bloodGroup) {
+  //       toast.error("Please select a blood group");
+  //       return false;
+  //     }
+  //     if (parseFloat(formData.height) <= 0) {
+  //       toast.error("Please enter a valid height");
+  //       return false;
+  //     }
+  //     if (parseFloat(formData.weight) <= 0) {
+  //       toast.error("Please enter a valid weight");
+  //       return false;
+  //     }
+  //   } else {
+  //     if (!formData.licenseNumber) {
+  //       toast.error("Please enter license number");
+  //       return false;
+  //     }
+  //     if (parseFloat(formData.consultationFee) <= 0) {
+  //       toast.error("Please enter a valid consultation fee");
+  //       return false;
+  //     }
+  //     if (parseInt(formData.experienceYears) < 0) {
+  //       toast.error("Please enter valid years of experience");
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("HI");
+
+    // if (!validateForm()) return;
+    console.log("HI");
+
     setLoading(true);
 
     try {
-      const payload = {
-        ...formData,
-        role,
-        signupDate: new Date().toISOString(),
-        ...(role === "patient" && {
-          diseasesList: formData.diseasesList
-            ? formData.diseasesList.split(",").map((item) => item.trim())
-            : [],
-          familyDiseasesList: formData.familyDiseasesList
-            ? formData.familyDiseasesList.split(",").map((item) => item.trim())
-            : [],
-          allergiesList: formData.allergiesList
-            ? formData.allergiesList.split(",").map((item) => item.trim())
-            : [],
-        }),
-      };
+      let payload;
+      
+      if (role === "patient") {
+        payload = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phNumber: formData.phNumber,
+          gender: formData.gender.toUpperCase(),
+          bloodGroup: formData.bloodGroup,
+          height: parseFloat(formData.height),
+          weight: parseFloat(formData.weight),
+          diseases: formData.diseases ? formData.diseases.split(",").map(item => item.trim()) : [],
+          familyDiseases: formData.familyDiseases ? formData.familyDiseases.split(",").map(item => item.trim()) : [],
+          allergies: formData.allergies ? formData.allergies.split(",").map(item => item.trim()) : []
+        };
+      } else {
+        payload = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phNumber: formData.phNumber,
+          gender: formData.gender.toUpperCase(),
+          licenseNumber: formData.licenseNumber,
+          department: formData.department,
+          experienceYears: parseInt(formData.experienceYears),
+          consultationFee: parseFloat(formData.consultationFee),
+          qualification: formData.qualification,
+          hospitalName: formData.hospitalName,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state
+        };
+      }
 
-      const response = await axios.post("/api/signup", payload);
+      const endpoint = role === "patient" 
+        ? "http://localhost:8080/api/auth/patient/signup"
+        : "http://localhost:8080/api/auth/doctor/signup";
+      console.log("HI");
+      const response = await axios.post(endpoint, payload);
+      console.log(response.status);
       toast.success("Signup successful! Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Signup failed. Please try again."
-      );
+      toast.error(error.response?.data?.message || "Signup failed. Please try again.");
       console.error("Signup error:", error);
     } finally {
       setLoading(false);
@@ -75,16 +151,14 @@ const Signup = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
-  // const commonInputClasses =
-  //   "w-full px-4 py-3 rounded-lg bg-gray-100/10 border border-gray-200/20 focus:border-blue-500/50 focus:bg-gray-100/20 focus:outline-none transition-all text-white placeholder-gray-400";
-  const commonInputClasses =
-  "w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-gray-400 focus:outline-none transition-all text-gray-800 placeholder-gray-400 bg-white";
+  const commonInputClasses = "w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-gray-400 focus:outline-none transition-all text-gray-800 placeholder-gray-400 bg-white";
+
   return (
     <div className="min-h-screen flex items-start justify-start p-8 md:p-16 bg-gray-50">
       <motion.div
@@ -161,96 +235,70 @@ const Signup = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Common Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <input
-                type="text"
-                name="name"
-                placeholder="Full Name"
-                className={commonInputClasses}
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-            </motion.div>
+            <input
+              type="text"
+              name="name"
+              placeholder="Full Name"
+              className={commonInputClasses}
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+            />
 
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                className={commonInputClasses}
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-            </motion.div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              className={commonInputClasses}
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+            />
 
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                className={commonInputClasses}
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-              />
-            </motion.div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              className={commonInputClasses}
+              value={formData.password}
+              onChange={handleInputChange}
+              required
+              minLength={8}
+            />
 
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <input
-                type="tel"
-                name="phoneNumber"
-                placeholder="Phone Number"
-                className={commonInputClasses}
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                required
-              />
-            </motion.div>
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              className={commonInputClasses}
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              required
+            />
 
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
+            <input
+              type="tel"
+              name="phNumber"
+              placeholder="Phone Number"
+              className={commonInputClasses}
+              value={formData.phNumber}
+              onChange={handleInputChange}
+              required
+              pattern="\d{10}"
+            />
+
+            <select
+              name="gender"
+              className={commonInputClasses}
+              value={formData.gender}
+              onChange={handleInputChange}
+              required
             >
-              <select
-                name="gender"
-                className={commonInputClasses}
-                value={formData.gender}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="" className="text-gray-800">
-                  Select Gender
-                </option>
-                <option value="male" className="text-gray-800">
-                  Male
-                </option>
-                <option value="female" className="text-gray-800">
-                  Female
-                </option>
-                <option value="other" className="text-gray-800">
-                  Other
-                </option>
-              </select>
-            </motion.div>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
           </div>
 
           {/* Role Specific Fields */}
@@ -269,9 +317,7 @@ const Signup = () => {
                   onChange={handleInputChange}
                   required
                 >
-                  <option value="" className="text-gray-800">
-                    Select Blood Group
-                  </option>
+                  <option value="">Select Blood Group</option>
                   {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
                     (group) => (
                       <option
@@ -293,6 +339,8 @@ const Signup = () => {
                   value={formData.height}
                   onChange={handleInputChange}
                   required
+                  min="0"
+                  step="0.1"
                 />
 
                 <input
@@ -303,14 +351,16 @@ const Signup = () => {
                   value={formData.weight}
                   onChange={handleInputChange}
                   required
+                  min="0"
+                  step="0.1"
                 />
 
                 <div className="md:col-span-2">
                   <textarea
-                    name="diseasesList"
+                    name="diseases"
                     placeholder="Diseases (comma separated)"
                     className={commonInputClasses}
-                    value={formData.diseasesList}
+                    value={formData.diseases}
                     onChange={handleInputChange}
                     rows="2"
                   />
@@ -318,10 +368,10 @@ const Signup = () => {
 
                 <div className="md:col-span-2">
                   <textarea
-                    name="familyDiseasesList"
+                    name="familyDiseases"
                     placeholder="Family Diseases (comma separated)"
                     className={commonInputClasses}
-                    value={formData.familyDiseasesList}
+                    value={formData.familyDiseases}
                     onChange={handleInputChange}
                     rows="2"
                   />
@@ -329,10 +379,10 @@ const Signup = () => {
 
                 <div className="md:col-span-2">
                   <textarea
-                    name="allergiesList"
+                    name="allergies"
                     placeholder="Allergies (comma separated)"
                     className={commonInputClasses}
-                    value={formData.allergiesList}
+                    value={formData.allergies}
                     onChange={handleInputChange}
                     rows="2"
                   />
@@ -368,6 +418,7 @@ const Signup = () => {
                   value={formData.experienceYears}
                   onChange={handleInputChange}
                   required
+                  min="0"
                 />
 
                 <input
@@ -378,6 +429,8 @@ const Signup = () => {
                   value={formData.consultationFee}
                   onChange={handleInputChange}
                   required
+                  min="0"
+                  step="0.01"
                 />
 
                 <input

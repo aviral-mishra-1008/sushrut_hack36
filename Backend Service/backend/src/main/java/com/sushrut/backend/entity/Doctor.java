@@ -52,6 +52,6 @@ public class Doctor {
     @Column(nullable = false)
     private String state;
 
-    @Column(nullable = false)
+    @Column
     private Double rating = 2.5;
 }

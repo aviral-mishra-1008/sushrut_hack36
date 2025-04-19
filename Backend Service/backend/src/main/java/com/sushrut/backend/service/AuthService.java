@@ -88,6 +88,7 @@ public class AuthService {
                 .hospitalName(signupDTO.getHospitalName())
                 .address(signupDTO.getAddress())
                 .city(signupDTO.getCity())
+                .rating(2.5) // Explicitly set default rating
                 .state(signupDTO.getState())
                 .build();
 

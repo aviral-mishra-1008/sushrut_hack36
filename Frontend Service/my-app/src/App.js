@@ -12,6 +12,7 @@ import { ProtectedRoute2 } from './routes/ProtectedRoute2';
 import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import SignUpDA from "./pages/SignupDA";
+import LoginDA from "./pages/LoginDA";
 function App() {
   return (
     <BrowserRouter>
@@ -24,6 +25,7 @@ function App() {
         <Route path = "login" element = { <Login/> }/> 
         <Route path = "agent" element = { <Agent/> }/> 
         <Route path = "signupDA" element = { <SignUpDA/> }/>
+        <Route path = "touchless" element = { <LoginDA/> }/>
 
         {/* Redirect /moderator to /moderator/dashboard */}
         <Route 
