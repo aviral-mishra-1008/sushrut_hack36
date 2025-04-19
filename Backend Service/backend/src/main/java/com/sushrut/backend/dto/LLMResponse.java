@@ -1,0 +1,15 @@
+package com.sushrut.backend.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class LLMResponse {
+    private String department;
+    private String description;
+}
+
+

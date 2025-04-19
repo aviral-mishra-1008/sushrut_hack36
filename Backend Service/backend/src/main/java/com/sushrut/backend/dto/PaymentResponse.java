@@ -1,0 +1,12 @@
+package com.sushrut.backend.dto;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class PaymentResponse {
+    private String paymentID;
+    private String transactionID;
+    private boolean success;
+}
