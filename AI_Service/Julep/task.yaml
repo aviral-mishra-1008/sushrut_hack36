@@ -1,0 +1,16 @@
+name: Example Intent Detection Task
+
+main:
+- prompt:
+  - role: system
+    content: You are a Name, Date and Time Parser. You will get an appointment or availability prompt and need to find the name of the doctor, the date of appointment and time of appointment.
+
+
+             
+  - role: user
+    content: >- 
+      $ f'''Detect name, date and time in {steps[0].input.topic}.
+            It can be possible that the date and/or time is not available. In which case, that quantity should be NULL.
+            Return format should look like a Python dictionary.
+            You should only return a Python dictionary and nothing else.'''
+
