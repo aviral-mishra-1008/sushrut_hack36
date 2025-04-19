@@ -12,7 +12,15 @@ import shutil
 from pathlib import Path
 from fastapi.responses import JSONResponse
 import base64
+from datetime import datetime
 from auth import *
+from LLM_Models.Pathology_Report_Models.utils.reportTables2Text import *
+from LLM_Models.Pathology_Report_Models.utils.pdf2Text import *
+from LLM_Models.Pathology_Report_Models.utils.text2table import *
+from LLM_Models.Radiology_Report_Models.Summarization_model.summary_model import *
+from LLM_Models.Gemini.Layman import *
+from Masking_Demasking_Module.Masking_Layer import *
+import os
 
 app = FastAPI()
 
@@ -27,6 +35,13 @@ app.add_middleware(
 llm = LLM()
 gemini = Gemini()
 promptBuilder = PromptBuilder()
+
+
+radio_summary_model = PDFSummarizer()
+table_extractor = pathology_reports()
+pdf_to_text = PDFTextExtractor()
+explainer = Layman(os.getenv('GEMINI_API_KEY'))
+pii_masker = PIIMasker()
 
 
 TEMP_DIR = Path("Temp")
@@ -191,8 +206,109 @@ async def authenticate_user(request: Request):
         )
 
 
+TEMP_DIR = Path("AI_Service/Temp")
+TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
+@app.post("/summarize")
+async def summarize_report(request: Request):
+    try:
+        data = await request.json()
+        file_content = data.get('file_content', '')
+        report_type = data.get('report_type', None)
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        if not file_content:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error",
+                    "message": "file_content is required"
+                }
+            )
+
+        if report_type not in [0, 1]:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error",
+                    "message": "report_type must be 0 (Radiology) or 1 (Pathology)"
+                }
+            )
+
+        try:
+            pdf_content = base64.b64decode(file_content)
+            pdf_path = TEMP_DIR / "test.pdf"
+            with open(pdf_path, "wb") as f:
+                f.write(pdf_content)
+        except Exception as e:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error",
+                    "message": f"Invalid PDF content: {str(e)}"
+                }
+            )
+
+        try:
+            if report_type == 0:  
+                outcome = radio_summary_model.summarize_pdf(str(pdf_path))
+                
+                masked_text, mapping_dict = pii_masker.mask_pii(outcome)
+                
+                masked_explanation = explainer.explain(masked_text)
+                
+                demasked_summary = pii_masker.demask_pii(masked_text, mapping_dict)
+                demasked_explanation = pii_masker.demask_pii(masked_explanation, mapping_dict)
+                
+                response = {
+                    "status": "success",
+                    "summary": demasked_summary,
+                    "explanation": demasked_explanation
+                }
+
+            else: 
+                tables = table_extractor.get_valid_tables(str(pdf_path))
+                
+                if tables is not None:
+                    outcome = table_extractor.to_natural_language(tables)
+                else:
+                    text = pdf_to_text.process_pdf(str(pdf_path))
+                    table = pdf_to_text.process_medical_report(text)
+                    if table is not None:
+                        outcome = table_extractor.to_natural_language(table)
+                    else:
+                        return JSONResponse(
+                            status_code=400,
+                            content={
+                                "status": "error",
+                                "message": "No valid tables found in the PDF"
+                            }
+                        )
+                
+                masked_text, mapping_dict = pii_masker.mask_pii(outcome)
+                masked_explanation = explainer.explain(masked_text)
+                demasked_summary = pii_masker.demask_pii(masked_text, mapping_dict)
+                demasked_explanation = pii_masker.demask_pii(masked_explanation, mapping_dict)
+                
+                response = {
+                    "status": "success",
+                    "summary": demasked_summary,
+                    "explanation": demasked_explanation
+                }
+
+        finally:
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+
+        return JSONResponse(
+            status_code=200,
+            content=response
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": f"An error occurred: {str(e)}"
+            }
+        )

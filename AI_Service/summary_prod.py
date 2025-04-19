@@ -1,8 +1,8 @@
-from Pathology_Report_Models.utils.reportTables2Text import *
-from Pathology_Report_Models.utils.pdf2Text import *
-from Pathology_Report_Models.utils.text2table import *
-from Radiology_Report_Models.Summarization_model.summary_model import *
-from Gemini.Layman import *
+from LLM_Models.Pathology_Report_Models.utils.reportTables2Text import *
+from LLM_Models.Pathology_Report_Models.utils.pdf2Text import *
+from LLM_Models.Pathology_Report_Models.utils.text2table import *
+from LLM_Models.Radiology_Report_Models.Summarization_model.summary_model import *
+from LLM_Models.Gemini.Layman import *
 import os
 
 

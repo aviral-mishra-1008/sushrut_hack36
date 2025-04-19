@@ -305,11 +305,11 @@ const SignUpDA = () => {
       const userid = "36630102-9f82-42c5-aaaf-cfaaed2895be";
       // First API call to backend
       const backendResponse = await axios.post(
-        "http://localhost:8000/api/auth/patient/signup",
+        "http://localhost:8080/api/auth/patient/signup",
         {
-          name: userData.name,
-          email: userData.email,
-          phoneNumber: userData.phoneNumber,
+          name:userData.name.replace(/\./g, '').trim(),
+          email: userData.email.replace(/\./g, '').trim(),
+          phNumber: userData.phoneNumber.replace(/\./g, '').trim(),
           password: "SecurePass@2025",
           gender: "Male",
           role: "PATIENT",
