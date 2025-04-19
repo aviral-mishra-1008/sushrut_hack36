@@ -67,7 +67,7 @@ class Gemini():
         if confidence > 0.75:
             result['message'] = f"Please consult the {result['recommended_department']} department"
         else:
-            result['recommended_department'] = "General Medicine"
+            result['recommended_department'] = "General Physician"
             result['message'] = "Please consult a General Physician"
         
         return result
