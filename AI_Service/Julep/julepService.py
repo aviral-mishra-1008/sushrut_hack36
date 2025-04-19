@@ -36,8 +36,9 @@ client = Julep(
 
 class APICaller:
 
-    def __init__(self, prompt):
+    def __init__(self, prompt, mapping):
         self.prompt = prompt
+        self.mapping = mapping
     
     def sendMessage(self):
         session = client.sessions.get(session_id=os.getenv('SESSION_ID'))
@@ -68,6 +69,7 @@ class APICaller:
             res = requests.post(url="http://127.0.0.1:8080/api/llm/query", json=data)
             return res.content
         if endpoint == 'book_appointment':
+            self.prompt = pii.demask_pii(self.prompt, self.mapping)
             info = parseNameDateTime(self.prompt)
             #print(info)
             data = {
@@ -101,8 +103,11 @@ async def getIntent(prompt: Request):
     print(query, language)
     if language != 'en-US' and language != 'en-GB':
         query = await to_english(query, language)
-    call = APICaller(query)
-    mapping = json.loads(call.callAPI())
+    masked_query, mask_map = pii.mask_pii(query)
+    call = APICaller(masked_query, mask_map)
+    mapping = call.callAPI()
+    mapping = pii.demask_pii(mapping, mask_map)
+    mapping = json.loads(mapping)
     mapping['description'] = await to_vernacular(mapping['description'], language_code=language)
     mapping = json.dumps(mapping)
     return mapping
