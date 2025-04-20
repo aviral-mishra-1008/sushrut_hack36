@@ -167,12 +167,9 @@ const LoginDA = () => {
         
         console.log("Login response:", response2.data);
         toast.success("Login successful!");
-  
+        navigate("/patient/dashboard");
         
-        // Redirect based on role
-        setTimeout(() => {
-            navigate("/patient/dashboard");
-        }, 1500);
+        
       } catch (error) {
         const errorMessage =
           error.response2?.data?.message || "Login failed. Please try again.";

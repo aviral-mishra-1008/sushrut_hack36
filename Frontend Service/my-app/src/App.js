@@ -13,6 +13,7 @@ import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import SignUpDA from "./pages/SignupDA";
 import LoginDA from "./pages/LoginDA";
+import BookTest from "./pages/BookTest";
 function App() {
   return (
     <BrowserRouter>
@@ -26,7 +27,7 @@ function App() {
         <Route path = "agent" element = { <Agent/> }/> 
         <Route path = "signupDA" element = { <SignUpDA/> }/>
         <Route path = "touchless" element = { <LoginDA/> }/>
-
+        <Route path="/patient/booktest" element={<BookTest />} />
 
         {/* Redirect /moderator to /moderator/dashboard */}
         <Route 

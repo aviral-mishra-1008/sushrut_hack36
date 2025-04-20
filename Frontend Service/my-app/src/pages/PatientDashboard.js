@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiHeart, FiActivity, FiAlertCircle, FiPhone, FiMail, FiLogOut } from 'react-icons/fi';
+// import { FiUser, FiHeart, FiActivity, FiAlertCircle, FiPhone, FiMail, FiLogOut } from 'react-icons/fi';
+import { FiUser, FiHeart, FiActivity, FiAlertCircle, FiPhone, FiMail, FiLogOut, FiCalendar } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -188,7 +189,20 @@ const PatientDashboard = () => {
             </div>
           </div>
         </div>
+        <div className="mt-8 flex justify-center">
+  <button
+    onClick={() => navigate('/patient/booktest')}
+    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium 
+              rounded-md text-white bg-purple-600 hover:bg-purple-700 
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+              shadow-sm transition-colors duration-200"
+  >
+    <FiCalendar className="mr-2 -ml-1 h-5 w-5" />
+    Book New Test
+  </button>
+</div>
       </main>
+
     </div>
   );
 };
