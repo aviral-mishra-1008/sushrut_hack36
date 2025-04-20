@@ -9,7 +9,7 @@
 SUSHRUT is an intelligent, conversational healthcare assistant aimed at revolutionizing medical access through personalized recommendations and AI-powered interactions. The project, developed for Hack36 2025, focuses on making healthcare inclusive, efficient, and secure, especially for visually and motor-impaired individuals.
   
 ## Demo Video Link:
-  <a href="https://www.youtube.com/watch?v=uSkx4GsY2pU">https://youtu.be/dQw4w9WgXcQ</a>
+  <a href="https://www.youtube.com/watch?v=uSkx4GsY2pU">Link to Demo Video</a>
   
 ## Presentation Link:
   <a href="https://mnnitedu-my.sharepoint.com/:p:/g/personal/aviral_20225017_mnnit_ac_in/EXHky5RqMJVEjeci-eijiMEBqsO5i-dmDO7DCwvru2mQWg?e=PHj3ua"> PPT link here </a>
