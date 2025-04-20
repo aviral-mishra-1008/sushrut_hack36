@@ -8,10 +8,11 @@ from pydantic import BaseModel
 import sys
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
+import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from translate import to_english
+from translate import to_english, to_vernacular
 from Masking_Demasking_Module.Masking_Layer import PIIMasker
 
 pii = PIIMasker()
@@ -35,8 +36,9 @@ client = Julep(
 
 class APICaller:
 
-    def __init__(self, prompt):
+    def __init__(self, prompt, mapping):
         self.prompt = prompt
+        self.mapping = mapping
     
     def sendMessage(self):
         session = client.sessions.get(session_id=os.getenv('SESSION_ID'))
@@ -67,6 +69,7 @@ class APICaller:
             res = requests.post(url="http://127.0.0.1:8080/api/llm/query", json=data)
             return res.content
         if endpoint == 'book_appointment':
+            self.prompt = pii.demask_pii(self.prompt, self.mapping)
             info = parseNameDateTime(self.prompt)
             #print(info)
             data = {
@@ -97,7 +100,14 @@ async def getIntent(prompt: Request):
     data = await prompt.json()
     query = data.get('query', '')
     language = data.get('language', '')
+    print(query, language)
     if language != 'en-US' and language != 'en-GB':
-        query = to_english(query, language)
-    call = APICaller(query)
-    return call.callAPI()
+        query = await to_english(query, language)
+    masked_query, mask_map = pii.mask_pii(query)
+    call = APICaller(masked_query, mask_map)
+    mapping = call.callAPI()
+    mapping = pii.demask_pii(mapping, mask_map)
+    mapping = json.loads(mapping)
+    mapping['description'] = await to_vernacular(mapping['description'], language_code=language)
+    mapping = json.dumps(mapping)
+    return mapping

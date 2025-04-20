@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
+let globalAudioBase64 = null;
 
 class MarkovGenerator {
   constructor(modelData) {
@@ -49,10 +50,10 @@ const SignUpDA = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState("welcome");
   const [isListening, setIsListening] = useState(false);
-  const [verificationText, setVerificationText] = useState("");
   // Global states for media data
   const [globalBase64Image, setGlobalBase64Image] = useState(null);
   const [globalAudioRecording, setGlobalAudioRecording] = useState(null);
+
 
   const [userData, setUserData] = useState({
     name: "",
@@ -89,53 +90,52 @@ const SignUpDA = () => {
     utterance.lang = "en-US";
     window.speechSynthesis.speak(utterance);
   };
-  // New function to handle audio recording
-  const startAudioRecording = async () => {
-    try {
-      const audioStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
+   const startAudioRecording = async () => {
+     try {
+       const audioStream = await navigator.mediaDevices.getUserMedia({
+         audio: true,
+       });
 
-      mediaRecorderRef.current = new MediaRecorder(audioStream);
-      chunksRef.current = [];
+       mediaRecorderRef.current = new MediaRecorder(audioStream);
+       chunksRef.current = [];
 
-      mediaRecorderRef.current.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
-        }
-      };
+       mediaRecorderRef.current.ondataavailable = (e) => {
+         if (e.data.size > 0) {
+           chunksRef.current.push(e.data);
+         }
+       };
 
-      mediaRecorderRef.current.onstop = () => {
-        console.log("HI");
-        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
-        setAudioRecording(audioBlob);
-        // Convert audio blob to base64
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64Audio = reader.result.split(",")[1];
-          setGlobalAudioRecording(base64Audio);
-          console.log("Audio recorded and stored as base64",base64Audio);
-        };
-        reader.readAsDataURL(audioBlob);
-      };
+       mediaRecorderRef.current.onstop = () => {
+         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+         setAudioRecording(audioBlob);
 
-      mediaRecorderRef.current.start();
-      console.log("Started recording verification audio");
-    } catch (error) {
-      console.error("Error starting audio recording:", error);
-      speak("Failed to access microphone. Please check permissions.");
-    }
-  };
-  const stopAudioRecording = () => {
-    if (
-      mediaRecorderRef.current &&
-      mediaRecorderRef.current.state !== "inactive"
-    ) {
-      mediaRecorderRef.current.stop();
-      const tracks = mediaRecorderRef.current.stream.getTracks();
-      tracks.forEach((track) => track.stop());
-    }
-  };
+         const reader = new FileReader();
+         reader.readAsDataURL(audioBlob);
+         reader.onloadend = () => {
+           globalAudioBase64= reader.result.split(",")[1];
+           console.log("Audio recorded and converted to base64",globalAudioBase64);
+         };
+       };
+
+       mediaRecorderRef.current.start();
+       console.log("Started recording audio");
+     } catch (error) {
+       console.error("Error starting audio recording:", error);
+       speak("Failed to access microphone. Please check permissions.");
+     }
+   };
+
+   const stopAudioRecording = () => {
+     if (
+       mediaRecorderRef.current &&
+       mediaRecorderRef.current.state !== "inactive"
+     ) {
+       mediaRecorderRef.current.stop();
+       const tracks = mediaRecorderRef.current.stream.getTracks();
+       tracks.forEach((track) => track.stop());
+     }
+   };
+
   const startListening = () => {
     if (!("webkitSpeechRecognition" in window)) {
       alert("Speech recognition is not supported in this browser");
@@ -151,7 +151,7 @@ const SignUpDA = () => {
 
     // Start audio recording when verification step begins
     if (currentStep === "verify") {
-      startAudioRecording();
+         startAudioRecording();
     }
 
     recognitionRef.current.onstart = () => {
@@ -214,40 +214,6 @@ const SignUpDA = () => {
     }
   };
 
-  //   const startCamera = async () => {
-  //     try {
-  //       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  //       if (videoRef.current) {
-  //         videoRef.current.srcObject = stream;
-  //       }
-
-  //       // Start recording audio
-  //       const audioStream = await navigator.mediaDevices.getUserMedia({
-  //         audio: true,
-  //       });
-  //       mediaRecorderRef.current = new MediaRecorder(audioStream);
-
-  //       mediaRecorderRef.current.ondataavailable = (e) => {
-  //         chunksRef.current.push(e.data);
-  //       };
-
-  //       mediaRecorderRef.current.onstop = () => {
-  //         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
-  //         setAudioRecording(audioBlob);
-  //         chunksRef.current = [];
-  //       };
-
-  //       mediaRecorderRef.current.start();
-  //     } catch (error) {
-  //       console.error("Error accessing camera:", error);
-  //       setMessage(
-  //         "Failed to access camera. Please ensure camera permissions are granted."
-  //       );
-  //       speak(
-  //         "Failed to access camera. Please ensure camera permissions are granted."
-  //       );
-  //     }
-  //   };
 
   const startCamera = async () => {
     try {
@@ -262,26 +228,6 @@ const SignUpDA = () => {
     }
   };
 
-  //   const capturePhoto = () => {
-  //     if (videoRef.current) {
-  //       const canvas = document.createElement("canvas");
-  //       canvas.width = videoRef.current.videoWidth;
-  //       canvas.height = videoRef.current.videoHeight;
-  //       canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
-  //       const imageDataUrl = canvas.toDataURL("image/jpeg");
-  //       setCapturedImage(imageDataUrl);
-
-  //       // Stop video stream and audio recording
-  //       const tracks = videoRef.current.srcObject.getTracks();
-  //       tracks.forEach((track) => track.stop());
-  //       if (
-  //         mediaRecorderRef.current &&
-  //         mediaRecorderRef.current.state !== "inactive"
-  //       ) {
-  //         mediaRecorderRef.current.stop();
-  //       }
-  //     }
-  //   };
 
   const capturePhoto = () => {
     if (videoRef.current) {
@@ -323,10 +269,10 @@ const SignUpDA = () => {
       );
       console.log("Backend registration response:", backendResponse.data);
       // Verify we have both image and audio
-      if (!globalBase64Image || !globalAudioRecording) {
+      if (!globalBase64Image || !globalAudioBase64) {
         throw new Error("Missing image or audio recording");
       }
-       console.log("global audio",globalAudioRecording);
+       console.log("global audio",globalAudioBase64);
        console.log("global image",globalBase64Image);
        // Send to LLM endpoint with base64 data
     const llmResponse = await axios.post(
@@ -334,7 +280,7 @@ const SignUpDA = () => {
       {
         userID: userData.email.replace(/\./g, '').trim(),
         image_file: globalBase64Image,
-        audio_file: globalAudioRecording,
+        audio_file: globalAudioBase64,
       },
       {
         headers: {
@@ -534,26 +480,25 @@ const SignUpDA = () => {
             {currentStep === "verify" && (
               <div className="space-y-4">
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <p className="text-gray-700">Verification Phrase:</p>
-                  <p className="text-purple-600 font-medium mt-2">
+                  <p className="text-gray-700">Please speak this phrase:</p>
+                  <p className="text-purple-600 font-semibold mt-2 text-lg">
                     {userData.verificationString}
                   </p>
                 </div>
-                {isListening ? (
-                  <motion.div
-                    className="text-purple-600 text-center"
-                    animate={{ opacity: [1, 0.5, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    Listening for verification phrase...
-                  </motion.div>
-                ) : audioRecording ? (
+                {audioRecording && (
                   <div className="bg-green-50 p-4 rounded-lg">
                     <p className="text-green-700">
-                      Verification audio recorded successfully!
+                      Voice recorded successfully!
                     </p>
                   </div>
-                ) : null}
+                )}
+                <button
+                  onClick={stopAudioRecording}
+                  className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg 
+                       hover:bg-purple-700 transition-colors"
+                >
+                  Stop Recording
+                </button>
               </div>
             )}
 
