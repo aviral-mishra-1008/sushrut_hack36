@@ -6,7 +6,7 @@
 
 
 ## Introduction:
-SUSHRUT is an intelligent, conversational healthcare assistant aimed at revolutionizing medical access through personalized recommendations and AI-powered interactions. The project, developed for Hack36 2025, focuses on making healthcare inclusive, efficient, and secure, especially for visually and motor-impaired individuals.
+SUSHRUT is an intelligent, conversational healthcare assistant aimed at revolutionizing medical access through personalized recommendations and AI-powered interactions. The project, developed for Hack36 2025, focuses on making healthcare inclusive, efficient, and secure, especially for visually and motor-impaired individuals, people with less medical domain knowledge and also aims to eliminate the regional language barrier.
   
 ## Demo Video Link:
   <a href="https://www.youtube.com/watch?v=uSkx4GsY2pU">Link to Demo Video</a>
@@ -17,19 +17,20 @@ SUSHRUT is an intelligent, conversational healthcare assistant aimed at revoluti
   
 ## Table of Contents:
   **Doctor Recommendation**  
-  Suggests doctors based on patient symptoms using a dynamic agent backed by Claude 3.5 Sonnet.
+  Suggests doctors based on patient symptoms using a dynamic agent developed using JulepAI (running on Claude-3.5-sonnet).
 
  **Conversational Interface**  
-  Wake-up powered and voice-enabled interactions for accessibility.
+  Voice-enabled interactions for accessibility with a vision for wake-up powered activations.
 
  **Touchless Authentication**  
-  Innovative multimodal (voice + face) auth system using deep learning models (`wav2vec2`, `Facenet_TL`) to verify identity without typing.
+  Innovative multimodal (voice + face) auth system using deep learning models (`wav2vec2`, `Facenet_TL`,`minivisionAI spoofing model`) to authenticate without typing. Aimed at people who can't type, making the platform accessible to people who do not wish to share their passwords with the helper and get authenticated without assistance [Detailed descriptions in the code AI_Service and presentation]
  
  **Medical History & Pathology Reports**  
-  Automatically fetches, summarizes, and masks pathology reports using NLP and NER models before sending to the LLM for processing.
+  Summarizes the third-party pathology reports, making the information accessible to those who do not have access to medical domain knowledge. Uses parsers, NER models, summarizer tools and regex before sending to the Gemini for processing.
 
-**PII Protection**  
-  Integrates a masking/demasking layer to protect personally identifiable information in medical queries.
+  **Masking PII**
+  The personally identifiable information is the data which must be protected at all costs, so the data which is sent to the external LLMs including Julep (which lacks zero-retention policy or masking layer) can be masked and then later demasked [For examples visit the module in github and see comments]
+
 
  **Appointment Management**  
   Backend-integrated appointment booking using Spring Boot and Google Text Translation APIs.
