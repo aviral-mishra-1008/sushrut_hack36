@@ -74,7 +74,7 @@ public class LLMQueryServiceImpl implements LLMQueryService{
 
 
         } catch(Exception e){
-            throw new LLMServiceException("Failed to get the output from the Server running LLM"+e.getMessage());
+            throw new LLMServiceException("Failed to get the output from the Server running LLM");
             /*
                 In case, there is some problem with the Python end, the normal RunTimeException of Java won't tell a thing
                 Thus, we define a custom exception to know the error is from the LLM and thus we can check the LLM Side

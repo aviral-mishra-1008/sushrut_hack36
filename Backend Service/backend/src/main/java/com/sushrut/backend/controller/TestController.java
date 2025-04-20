@@ -1,13 +1,14 @@
 package com.sushrut.backend.controller;
 
 import com.sushrut.backend.dto.TestBookingRequestDTO;
+import com.sushrut.backend.dto.VerifySummaryRequest;
 import com.sushrut.backend.entity.Test;
 import com.sushrut.backend.enums.TestBookedStatus;
 import com.sushrut.backend.service.TestService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -50,4 +51,20 @@ public class TestController {
         Test updatedTest = testService.addTestSummary(testId, summary);
         return ResponseEntity.ok(updatedTest);
     }
+
+    @GetMapping("/pending-summaries")
+    public ResponseEntity<List<Test>> getPendingSummaryTests() {
+        List<Test> pendingTests = testService.getPendingSummaryTests();
+        return ResponseEntity.ok(pendingTests);
+    }
+
+    @PutMapping("/{testId}/verify-summary")
+    public ResponseEntity<Test> verifyTestSummary(
+            @PathVariable String testId,
+            @RequestBody VerifySummaryRequest request
+    ) {
+        Test updatedTest = testService.editAndVerifyTestSummary(testId, request.getSummary());
+        return ResponseEntity.ok(updatedTest);
+    }
 }
+

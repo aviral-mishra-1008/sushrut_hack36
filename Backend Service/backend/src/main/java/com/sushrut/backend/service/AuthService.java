@@ -95,7 +95,7 @@ public class AuthService {
         return doctorRepository.save(doctor);
     }
 
-    public String login(LoginDTO loginDTO) {
+    public LoginResponseDTO login(LoginDTO loginDTO) {
         User user = userRepository.findByEmail(loginDTO.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -103,7 +103,51 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return jwtTokenProvider.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().name());
+
+        LoginResponseDTO.LoginResponseDTOBuilder responseBuilder = LoginResponseDTO.builder()
+                .token(token)
+                .userId(user.getUserId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phNumber(user.getPhNumber())
+                .gender(user.getGender())
+                .role(user.getRole());
+
+        if (user.getRole() == Role.DOCTOR) {
+            Doctor doctor = doctorRepository.findByUser(user)
+                    .orElseThrow(() -> new RuntimeException("Doctor details not found"));
+
+            responseBuilder
+                    .doctorId(doctor.getDoctorId())
+                    .licenseNumber(doctor.getLicenseNumber())
+                    .department(doctor.getDepartment())
+                    .experienceYears(doctor.getExperienceYears())
+                    .consultationFee(doctor.getConsultationFee())
+                    .qualification(doctor.getQualification())
+                    .hospitalName(doctor.getHospitalName())
+                    .address(doctor.getAddress())
+                    .city(doctor.getCity())
+                    .state(doctor.getState())
+                    .rating(doctor.getRating());
+        } else if (user.getRole() == Role.PATIENT) {
+            MedicalHistory medicalHistory = user.getMedicalHistory();
+            if (medicalHistory == null) {
+                throw new RuntimeException("Medical history not found");
+            }
+
+            responseBuilder
+                    .medicalHistoryId(medicalHistory.getMedicalHistoryId())
+                    .bloodGroup(medicalHistory.getBloodGroup())
+                    .height(medicalHistory.getHeight())
+                    .weight(medicalHistory.getWeight())
+                    .bmi(medicalHistory.getBmi())
+                    .diseases(medicalHistory.getDiseases())
+                    .familyDiseases(medicalHistory.getFamilyDiseases())
+                    .allergies(medicalHistory.getAllergies());
+        }
+
+        return responseBuilder.build();
     }
 
 }

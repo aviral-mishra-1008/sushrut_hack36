@@ -5,10 +5,12 @@ import com.sushrut.backend.entity.Test;
 import com.sushrut.backend.entity.User;
 import com.sushrut.backend.enums.SummaryStatus;
 import com.sushrut.backend.enums.TestBookedStatus;
+import com.sushrut.backend.enums.TestType;
 import com.sushrut.backend.repository.TestRepository;
 import com.sushrut.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
@@ -17,9 +19,14 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.web.client.RestOperations;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.IOException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +34,7 @@ public class TestService {
 
     private final TestRepository testRepository;
     private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
 
     // Encryption key - in real application, this should be in a secure configuration
     private static final String ENCRYPTION_KEY = "YourSecretKey123YourSecretKey123"; // 32 chars for AES-256
@@ -64,19 +72,56 @@ public class TestService {
         // Load and encrypt sample PDF
         byte[] samplePdf = loadSamplePdf();
         String encryptedPdfString = encryptPdf(samplePdf);
+        //send a request to localhost:8000/register_user with report_type and file_content fields containing testType and
+        //encryptedpdfstring respectively , it will return summary string in response , just save that summary in test below
+        String pythonBackendUrl = "http://localhost:8000/summarize";
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("file_content", encryptedPdfString);
+        requestBody.put("report_type", request.getTestType() == TestType.RADIOLOGY ? 0 : 1);
 
-        // Create new test booking
-        Test test = Test.builder()
-                .patient(patient)
-                .name(request.getName())
-                .testType(request.getTestType())
-                .bookedStatus(TestBookedStatus.PENDING)
-                .summaryStatus(SummaryStatus.PENDING)
-                .encryptedPdf(encryptedPdfString)  // Store encrypted PDF
-                .build();
+        ResponseEntity<Map> response;
 
-        // Save and return the test
-        return testRepository.save(test);
+        try {
+
+            response = restTemplate.postForEntity(
+                    pythonBackendUrl,
+                    requestBody,
+                    Map.class
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to get summary from Python backend");
+            }
+
+            // Extract summary from response
+            Map<String, String> responseBody = response.getBody();
+            String summary = responseBody != null ? responseBody.get("summary") : null;
+            String explanation = responseBody != null ? responseBody.get("explanation") : null;
+
+            // Create new test booking with summary
+            Test test = Test.builder()
+                    .patient(patient)
+                    .name(request.getName())
+                    .testType(request.getTestType())
+                    .bookedStatus(TestBookedStatus.PENDING)
+                    .summaryStatus(SummaryStatus.PENDING)
+                    .encryptedPdf(encryptedPdfString)
+                    .summary(summary)
+                    .build();
+
+            return testRepository.save(test);
+        } catch (Exception e) {
+            Test test = Test.builder()
+                    .patient(patient)
+                    .name(request.getName())
+                    .testType(request.getTestType())
+                    .bookedStatus(TestBookedStatus.PENDING)
+                    .summaryStatus(SummaryStatus.FAILED)
+                    .encryptedPdf(encryptedPdfString)
+                    .build();
+
+            return testRepository.save(test);
+        }
     }
 
     public List<Test> getPatientTests(String patientId) {
@@ -101,6 +146,21 @@ public class TestService {
         Test test = getTestById(testId);
         test.setSummary(summary);
         test.setSummaryStatus(SummaryStatus.VERIFIED);
+        return testRepository.save(test);
+    }
+
+    public List<Test> getPendingSummaryTests() {
+        return testRepository.findBySummaryStatus(SummaryStatus.PENDING);
+    }
+
+    @Transactional
+    public Test editAndVerifyTestSummary(String testId, String newSummary) {
+        Test test = testRepository.findById(testId)
+                .orElseThrow(() -> new EntityNotFoundException("Test not found"));
+        test.setSummary(newSummary);
+        test.setSummaryStatus(SummaryStatus.VERIFIED);
+
+
         return testRepository.save(test);
     }
 }
