@@ -103,39 +103,68 @@ async def register_users(request: Request):
             )
 
         try:
+            # Decode base64 audio
             audio_data = base64.b64decode(audio_base64)
-            audio_path = os.path.join(TEMP_DIR,f"{userID}.wav")
-            with open(audio_path, "wb") as f:
-                f.write(audio_data)
+            
+            # Process audio with pydub
+            try:
+                # Load audio from bytes
+                audio = AudioSegment.from_file(io.BytesIO(audio_data))
+                
+                # Convert to mono if stereo
+                if audio.channels > 1:
+                    audio = audio.set_channels(1)
+                
+                # Set proper audio parameters
+                audio = audio.set_frame_rate(16000)  # Set sample rate to 16kHz
+                audio = audio.set_sample_width(2)    # Set to 16-bit
+                
+                # Save the processed audio
+                audio_path = os.path.join(TEMP_DIR, f"{userID}.wav")
+                audio.export(audio_path, format="wav", parameters=["-ac", "1", "-ar", "16000"])
+                print("Audio file processed and saved successfully")
+            
+            except Exception as audio_e:
+                print(f"Error processing audio: {str(audio_e)}")
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "status": "error",
+                        "message": f"Error processing audio: {str(audio_e)}",
+                    }
+                )
 
+            # Process image
             image_data = base64.b64decode(image_base64)
-            image_path =  os.path.join(TEMP_DIR,f"{userID}.jpg")
+            image_path = os.path.join(TEMP_DIR, f"{userID}.jpg")
             with open(image_path, "wb") as f:
                 f.write(image_data)
-            
+            print("Image file saved successfully")
 
+            # Register user
             register_user(audio_path, image_path, userID)
             print("User registered successfully")
 
+            # Clean up temporary files
             os.remove(audio_path)
             os.remove(image_path)
 
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "message": "Registration successful",
+                }
+            )
+
         except Exception as e:
-            print(f"Invalid base64 data: {str(e)}")
+            print(f"Processing error: {str(e)}")
             return JSONResponse(
                 status_code=400,
                 content={
                     "status": "error",
-                    "message": f"Invalid base64 data: {str(e)}",
+                    "message": f"Processing error: {str(e)}",
                 }
             )
-        
-        return JSONResponse(
-            status_code=200,
-            content={
-                "message": "Registration successful",
-            }
-        )
 
     except Exception as e:
         return JSONResponse(
@@ -202,7 +231,7 @@ async def authenticate_users(request: Request):
             print("Image file saved successfully")
 
             userID = authenticate_user(audio_path, image_path)
-            print("User authenticated successfully")
+            print("User authenticated successfully",userID)
 
             return JSONResponse(
                 status_code=200,
