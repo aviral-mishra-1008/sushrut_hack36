@@ -3,3 +3,7 @@ Facenet_TL_ep10/
 .env
 embeddings.pkl
 faceEmbeddings.pkl
+*.pb
+*.ckpt
+*.h5
+*.index
