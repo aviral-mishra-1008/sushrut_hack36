@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Backend Service/backend
+      dockerfile: Dockerfile
+    container_name: sushrut-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=${POSTGRES_DRIVER}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend Service/my-app
+      dockerfile: Dockerfile
+    container_name: sushrut-frontend
+    ports:
+      - "3005:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8080
+    depends_on:
+      - backend
+    restart: unless-stopped

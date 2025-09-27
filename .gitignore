@@ -1,1 +1,11 @@
 "Backend Service/backend/src/main/resources/.env" 
+.env
+.env.local
+.env.docker
+.docker/
+docker-compose.override.yml
+.dockerignore
+node_modules/
+npm-debug.log*
+build/
+dist/

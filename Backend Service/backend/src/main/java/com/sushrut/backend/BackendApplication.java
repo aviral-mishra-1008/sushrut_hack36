@@ -10,3 +10,6 @@ public class BackendApplication {
 	}
 
 }
+
+
+// docker-compose up --build

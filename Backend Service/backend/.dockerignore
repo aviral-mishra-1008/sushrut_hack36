@@ -1,0 +1,9 @@
+target/
+.git/
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+*.log
+.DS_Store
+node_modules/
