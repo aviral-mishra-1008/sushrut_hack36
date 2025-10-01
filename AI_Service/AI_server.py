@@ -1,19 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+import json
 from LLM_Models.LLM.LLM import *
 from LLM_Models.Gemini.Recomment_Department import *
 from LLM_Models.LLM.Prompt_Builder import *
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-import json
-from translate import *
 from LLM_Models.LLM.Styles import *
-from fastapi import FastAPI, File, UploadFile, Request
+from translate import *
+from fastapi import File, UploadFile
 import shutil
 from pathlib import Path
 from fastapi.responses import JSONResponse
 import base64
 from datetime import datetime
-from auth import *
+from Touchless_auth.auth import *
 from LLM_Models.Pathology_Report_Models.utils.reportTables2Text import *
 from LLM_Models.Pathology_Report_Models.utils.pdf2Text import *
 from LLM_Models.Pathology_Report_Models.utils.text2table import *
@@ -376,3 +375,9 @@ async def summarize_report(request: Request):
                 "message": f"An error occurred: {str(e)}"
             }
         )
+
+if __name__ == "__main__":
+    import uvicorn
+    print("Starting AI Service Server...")
+    print("Server will be available at: http://127.0.0.1:8000")
+    uvicorn.run(app, host="127.0.0.1", port=8000)
