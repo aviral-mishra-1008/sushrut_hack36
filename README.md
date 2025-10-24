@@ -2,7 +2,7 @@
 <p align="center">
 </p>
 
-<a href="https://hack36.com"> <img src="https://postimage.me/images/2025/04/19/built-at-hack36.png" height=24px> </a>
+<a href="https://hack36.in"> <img src="https://postimage.me/images/2025/04/19/built-at-hack36.png" height=24px> </a>
 
 
 ## Introduction:
